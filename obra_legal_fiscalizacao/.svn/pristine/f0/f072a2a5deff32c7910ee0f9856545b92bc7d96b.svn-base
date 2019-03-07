@@ -1,0 +1,150 @@
+<?page title="Obra Legal - TCE/MA - Usuários"?>
+<?link rel="shortcut icon" type="image/x-icon" href="/imagens/favicon.ico"?>
+<?init class="org.zkoss.zk.ui.util.Composition" arg0="/template.zul" ?>
+
+<zk>
+	<panel
+		viewModel="@id('vm') @init('br.gov.ma.tce.obralegalfiscalizacao.pages.UsuariosVM')"
+		self="@define(conteudo)" title="Usuários do Módulo Fiscalização"
+		border="normal">
+		<panelchildren>
+			<vlayout>
+				<button label="Cadastrar novo usuário"
+					iconSclass="fas fa-plus-circle"
+					onClick="@command('abrirModalCadastrarUsuario', visible=true)" />
+				<grid model="@load(vm.usuarios)" mold="paging"
+					pageSize="10" emptyMessage="Nenhum usuário encontrado..">
+					<columns>
+						<column label="Nome" align="center" />
+						<column label="Matrícula" align="center" />
+						<column label="E-mail" align="center" />
+						<column label="Nível de usuário" align="center" />
+						<column label="Status" align="center"
+							width="135px" />
+						<column label="Ações" align="center"
+							width="200px" />
+					</columns>
+					<template name="model" var="usuario">
+						<row>
+							<label value="@load(usuario.nome)" />
+							<label value="@load(usuario.matricula)" />
+							<label value="@load(usuario.email)" />
+							<label
+								value="@load(usuario.nivelUsuarioStr)" />
+							<label
+								value="@load(usuario.ativo ? 'Ativo' : 'Inativo')" />
+							<div align="left">
+								<button label="Ativar/Desativar usuário"
+									iconSclass="fas fa-user-check"
+									onClick="@command('ativarDesativarUsuario', usuario=usuario)" />
+								<button label="Alterar nível de usuário"
+									iconSclass="fas fa-edit"
+									onClick="@command('abrirModalAlterarNivel', visible=true, usuario=usuario)" />
+							</div>
+						</row>
+					</template>
+				</grid>
+			</vlayout>
+
+			<window id="modalCadastrarUsuario" mode="modal"
+				onOK="@command('buscarServidor')" visible="false"
+				sclass="custom-window">
+				<vbox align="left">
+					<label
+						value="Cadastro de usuário do Módulo Fiscalização"
+						sclass="custom-title" />
+					<vlayout spacing="1px" style="line-height:0px">
+						<label value="Nome:" style="font-weight:bold" />
+						<label
+							visible="@load(not empty vm.novoUsuarioFiscalizacao.usuario)"
+							value="@load(vm.novoUsuarioFiscalizacao.nome)" />
+						<label
+							visible="@load(empty vm.novoUsuarioFiscalizacao.usuario)"
+							value="Informe a Matrícula do Servidor" />
+					</vlayout>
+					<vlayout spacing="1px">
+						<label value="Matrícula de Servidor:"
+							style="font-weight:bold" />
+						<hlayout>
+							<textbox width="200px"
+								value="@bind(vm.novoUsuarioFiscalizacao.servidorMatricula)" />
+							<button label="Buscar servidor"
+								onClick="@command('buscarServidor')" />
+						</hlayout>
+					</vlayout>
+					<vlayout spacing="1px">
+						<label value="Nível de Usuário:"
+							style="font-weight:bold" />
+						<combobox width="200px"
+							disabled="@load(empty vm.novoUsuarioFiscalizacao.usuario)"
+							selectedItem="@bind(vm.novoUsuarioFiscalizacao.nivelUsuario)">
+							<comboitem label="Administrador" value="1" />
+							<comboitem label="Auditor" value="2" />
+							<comboitem label="Estagiário" value="3" />
+						</combobox>
+					</vlayout>
+					<vlayout spacing="1px">
+						<label value="Senha:" style="font-weight:bold" />
+						<textbox width="200px"
+							disabled="@load(empty vm.novoUsuarioFiscalizacao.usuario)"
+							type="password" value="@bind(vm.novoUsuarioFiscalizacao.senha)" />
+					</vlayout>
+					<vlayout spacing="1px">
+						<label value="Repita a senha:"
+							style="font-weight:bold" />
+						<textbox width="200px"
+							disabled="@load(empty vm.novoUsuarioFiscalizacao.usuario)"
+							type="password"
+							value="@bind(vm.novoUsuarioFiscalizacao.repeteSenha)" />
+					</vlayout>
+
+					<separator />
+					<div align="center">
+						<button tooltiptext="Fechar"
+							style="font-weight:bold" label="FECHAR"
+							iconSclass="fas fa-times-circle"
+							onClick="@command('abrirModalCadastrarUsuario', visible=false)" />
+						<button tooltiptext="Cadastrar usuário"
+							style="font-weight:bold" label="CADASTRAR USUÁRIO"
+							iconSclass="fas fa-plus-circle"
+							onClick="@command('cadastrarUsuario')" />
+					</div>
+				</vbox>
+			</window>
+
+			<window id="modalAlterarNivel" mode="modal" visible="false"
+				sclass="custom-window">
+				<vbox align="left">
+					<label value="Alterar nível de usuário"
+						sclass="custom-title" />
+					<vlayout spacing="1px" style="line-height:0px">
+						<label value="Nome:" style="font-weight:bold" />
+						<label
+							value="@load(vm.usuarioFiscalizacaoSelecionado.nome)" />
+					</vlayout>
+					<vlayout spacing="1px">
+						<label value="Nível de usuário:"
+							style="font-weight:bold" />
+						<combobox width="200px"
+							selectedItem="@bind(vm.usuarioFiscalizacaoSelecionado.nivelUsuario)">
+							<comboitem label="Administrador" value="1" />
+							<comboitem label="Auditor" value="2" />
+							<comboitem label="Estagiário" value="3" />
+						</combobox>
+					</vlayout>
+
+					<separator />
+					<div align="center">
+						<button tooltiptext="Fechar"
+							style="font-weight:bold" label="FECHAR"
+							iconSclass="fas fa-times-circle"
+							onClick="@command('abrirModalAlterarNivel', visible=false, usuario=null)" />
+						<button tooltiptext="Salvar alterações"
+							style="font-weight:bold" label="SALVAR ALTERAÇÕES"
+							iconSclass="fas fa-save" onClick="@command('salvarAlteracao')" />
+					</div>
+				</vbox>
+			</window>
+		</panelchildren>
+	</panel>
+</zk>

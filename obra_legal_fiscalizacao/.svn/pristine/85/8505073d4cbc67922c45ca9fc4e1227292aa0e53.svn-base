@@ -1,0 +1,22 @@
+package br.gov.ma.tce.obralegalfiscalizacao.util;
+
+import java.util.Map;
+
+import org.zkoss.zk.ui.Executions;
+import org.zkoss.zk.ui.Page;
+import org.zkoss.zk.ui.Sessions;
+import org.zkoss.zk.ui.util.Initiator;
+
+import br.gov.ma.tce.obralegal.server.beans.usuariofiscalizacao.UsuarioFiscalizacao;
+
+public class InitPage implements Initiator {
+
+	@Override
+	public void doInit(Page arg0, Map<String, Object> arg1) throws Exception {
+		UsuarioFiscalizacao usuarioFiscalizacao = (UsuarioFiscalizacao) Sessions.getCurrent().getAttribute("usuarioFiscalizacao");
+		if (usuarioFiscalizacao == null) {
+			Executions.sendRedirect("/login.zul");
+		}
+	}
+
+}

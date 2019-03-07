@@ -1,0 +1,123 @@
+package br.gov.ma.tce.obralegal.server.beans.solicitacao;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+
+import javax.ejb.Stateless;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+
+import org.joda.time.LocalDate;
+
+import br.gov.ma.tce.obralegal.server.beans.obraservico.ObraServico;
+
+@Stateless
+public class SolicitacaoFacadeBean {
+	public static final String URI = "java:global/obra_legal_ear/obra_legal_server/SolicitacaoFacadeBean!br.gov.ma.tce.obralegal.server.beans.solicitacao.SolicitacaoFacadeBean";
+
+	@PersistenceContext(unitName = "obra_legal")
+	public EntityManager manager;
+
+	public Solicitacao include(Solicitacao solicitacao) {
+		manager.persist(solicitacao);
+		return solicitacao;
+	}
+
+	public Solicitacao update(Solicitacao solicitacao) {
+		manager.merge(solicitacao);
+		return solicitacao;
+	}
+
+	public void delete(int solicitacaoId) {
+		Solicitacao solicitacao = findByPrimaryKey(solicitacaoId);
+		manager.remove(solicitacao);
+	}
+
+	public Solicitacao findByPrimaryKey(Integer solicitacaoId) {
+		Solicitacao solicitacao = manager.find(Solicitacao.class, solicitacaoId);
+		return solicitacao;
+	}
+
+	public Collection<Solicitacao> findAll() {
+		Query q = manager.createQuery("select s from " + Solicitacao.NAME + " s order by s.solicitacaoId");
+		Collection<Solicitacao> solicitacoes = new ArrayList<Solicitacao>();
+		for (Object o : q.getResultList()) {
+			solicitacoes.add((Solicitacao) o);
+		}
+		return solicitacoes;
+	}
+
+	public Collection<Solicitacao> findSolicitacoesByObraServico(ObraServico obraServico) {
+		Query q = manager
+				.createQuery(
+						"select s from " + Solicitacao.NAME + " s where s.obraServico=:arg0 order by s.dataInclusao")
+				.setParameter("arg0", obraServico);
+		Collection<Solicitacao> solicitacoes = new ArrayList<Solicitacao>();
+		for (Object o : q.getResultList()) {
+			solicitacoes.add((Solicitacao) o);
+		}
+		return solicitacoes;
+	}
+
+	public Collection<Solicitacao> findSolicitacoesNaoAtendidas() {
+		Query q = manager
+				.createQuery("select s from " + Solicitacao.NAME + " s where s.status=null order by s.dataInclusao");
+		Collection<Solicitacao> solicitacoes = new ArrayList<Solicitacao>();
+		for (Object o : q.getResultList()) {
+			solicitacoes.add((Solicitacao) o);
+		}
+		return solicitacoes;
+	}
+
+	public Collection<Solicitacao> findSolicitacoesRevisadas() {
+		Query q = manager
+				.createQuery("select s from " + Solicitacao.NAME + " s where s.status!=null order by s.dataInclusao");
+		Collection<Solicitacao> solicitacoes = new ArrayList<Solicitacao>();
+		for (Object o : q.getResultList()) {
+			solicitacoes.add((Solicitacao) o);
+		}
+		return solicitacoes;
+	}
+
+	public Solicitacao findSolicitacaoNaoRevisadaByObraServico(ObraServico obraServico) {
+		Query q = manager
+				.createQuery("select s from " + Solicitacao.NAME
+						+ " s where s.obraServico=:arg0 and s.status=null order by s.dataInclusao")
+				.setParameter("arg0", obraServico);
+		return q.getResultList().isEmpty() ? null : (Solicitacao) q.getResultList().get(0);
+	}
+	
+	public Solicitacao findSolicitacaoAtendidaByObraServico(ObraServico obraServico) {
+		Query q = manager
+				.createQuery("select s from " + Solicitacao.NAME
+						+ " s where s.obraServico=:arg0 and s.status=true order by s.dataInclusao")
+				.setParameter("arg0", obraServico);
+		return q.getResultList().isEmpty() ? null : (Solicitacao) q.getResultList().get(0);
+	}
+
+	public Collection<Solicitacao> findSolicitacoesByMandato(Integer mandatoId) {
+		Query q = manager
+				.createQuery("select s from " + Solicitacao.NAME
+						+ " s where s.obraServico.mandatoId=:arg0 order by s.dataInclusao")
+				.setParameter("arg0", mandatoId);
+		Collection<Solicitacao> solicitacoes = new ArrayList<Solicitacao>();
+		for (Object o : q.getResultList()) {
+			solicitacoes.add((Solicitacao) o);
+		}
+		return solicitacoes;
+	}
+
+	public Collection<Solicitacao> findNovasSolicitacoesNaoRevisadas(Integer quantidadeDias) {
+		Date diaInicio = LocalDate.fromDateFields(new Date()).minusDays(quantidadeDias).toDate();
+		Query q = manager.createQuery("select s from " + Solicitacao.NAME
+				+ " s where s.dataInclusao between :arg0 and current_timestamp and s.status=null order by s.dataInclusao")
+				.setParameter("arg0", diaInicio);
+		Collection<Solicitacao> solicitacoes = new ArrayList<Solicitacao>();
+		for (Object o : q.getResultList()) {
+			solicitacoes.add((Solicitacao) o);
+		}
+		return solicitacoes;
+	}
+}

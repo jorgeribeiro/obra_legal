@@ -1,0 +1,178 @@
+package br.gov.ma.tce.obralegal.server.beans.pendencia;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import javax.persistence.Transient;
+
+import br.gov.ma.tce.obralegal.server.beans.obraservico.ObraServico;
+import br.gov.ma.tce.obralegal.server.beans.operadorjurisdicionado.OperadorJurisdicionado;
+import br.gov.ma.tce.obralegal.server.objetopendencia.ObjetoPendencia;
+import br.gov.ma.tce.obralegal.server.statuspendencia.StatusPendencia;
+import br.gov.ma.tce.seguranca.interno.server.beans.usuario.Usuario;
+import br.gov.ma.tce.seguranca.interno.server.beans.usuario.UsuarioFacadeBean;
+
+@Entity(name = Pendencia.NAME)
+@Table(schema = "obralegal", name = "pendencia")
+public class Pendencia implements Serializable {
+	public static final String NAME = "obralegal_Pendencia";
+	private static final long serialVersionUID = 1L;
+
+	@Id
+	@SequenceGenerator(name = "obralegal.seq_pendencia", sequenceName = "obralegal.seq_pendencia", allocationSize = 1)
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "obralegal.seq_pendencia")
+	@Column(name = "pendencia_id", columnDefinition = "INT4")
+	private Integer pendenciaId;
+
+	@Enumerated(EnumType.STRING)
+	@Column(name = "objeto", columnDefinition = "TEXT")
+	private ObjetoPendencia objeto;
+
+	@Column(name = "descricao", columnDefinition = "TEXT")
+	private String descricao;
+
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "data_inclusao")
+	private Date dataInclusao;
+
+	@Temporal(TemporalType.TIMESTAMP)
+	@Column(name = "data_retorno")
+	private Date dataRetorno;
+
+	@Enumerated(EnumType.STRING)
+	@Column(name = "status_pendencia", columnDefinition = "TEXT")
+	private StatusPendencia statusPendencia;
+
+	@Column(name = "usuario_id", columnDefinition = "INT4")
+	private Integer usuarioId;
+
+	@ManyToOne
+	@JoinColumn(name = "obra_servico_id", columnDefinition = "INT4")
+	private ObraServico obraServico;
+
+	@ManyToOne
+	@JoinColumn(name = "operador_jurisdicionado_id", columnDefinition = "INT4")
+	private OperadorJurisdicionado operadorJurisdicionado;
+
+	@Transient
+	private Usuario usuario;
+
+	public Integer getPendenciaId() {
+		return pendenciaId;
+	}
+
+	public void setPendenciaId(Integer pendenciaId) {
+		this.pendenciaId = pendenciaId;
+	}
+
+	public ObjetoPendencia getObjeto() {
+		return objeto;
+	}
+
+	public void setObjeto(ObjetoPendencia objeto) {
+		this.objeto = objeto;
+	}
+
+	public String getDescricao() {
+		return descricao;
+	}
+
+	public void setDescricao(String descricao) {
+		this.descricao = descricao;
+	}
+
+	public Date getDataInclusao() {
+		return dataInclusao;
+	}
+
+	public void setDataInclusao(Date dataInclusao) {
+		this.dataInclusao = dataInclusao;
+	}
+
+	public Date getDataRetorno() {
+		return dataRetorno;
+	}
+
+	public void setDataRetorno(Date dataRetorno) {
+		this.dataRetorno = dataRetorno;
+	}
+
+	public StatusPendencia getStatusPendencia() {
+		return statusPendencia;
+	}
+
+	public void setStatusPendencia(StatusPendencia statusPendencia) {
+		this.statusPendencia = statusPendencia;
+	}
+
+	public Integer getUsuarioId() {
+		return usuarioId;
+	}
+
+	public void setUsuarioId(Integer usuarioId) {
+		this.usuarioId = usuarioId;
+	}
+
+	public ObraServico getObraServico() {
+		return obraServico;
+	}
+
+	public void setObraServico(ObraServico obraServico) {
+		this.obraServico = obraServico;
+	}
+
+	public OperadorJurisdicionado getOperadorJurisdicionado() {
+		return operadorJurisdicionado;
+	}
+
+	public void setOperadorJurisdicionado(OperadorJurisdicionado operadorJurisdicionado) {
+		this.operadorJurisdicionado = operadorJurisdicionado;
+	}
+
+	public Usuario getUsuario() {
+		if (this.getUsuarioId() != null) {
+			try {
+				UsuarioFacadeBean usuarioFacade;
+				InitialContext ctx = new InitialContext();
+				usuarioFacade = (UsuarioFacadeBean) ctx.lookup(UsuarioFacadeBean.JNDI_OBRALEGAL);
+				usuario = usuarioFacade.findByPrimaryKey(this.getUsuarioId());
+			} catch (NamingException e) {
+				e.printStackTrace();
+				usuario = null;
+			}
+			return usuario;
+		} else {
+			return null;
+		}
+	}
+
+	public void setUsuario(Usuario usuario) {
+		try {
+			if (usuario == null) {
+				this.usuario = null;
+				this.usuarioId = null;
+			} else {
+				this.usuario = usuario;
+				this.usuarioId = usuario.getUsuarioId();
+			}
+		} catch (NullPointerException e) {
+			e.printStackTrace();
+		}
+	}
+
+}

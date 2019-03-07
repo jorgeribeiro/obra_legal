@@ -1,0 +1,224 @@
+package br.gov.ma.tce.obralegal.server.beans.usuariofiscalizacao;
+
+import java.io.Serializable;
+
+import javax.naming.InitialContext;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.SequenceGenerator;
+import javax.persistence.Table;
+import javax.persistence.Transient;
+
+import br.gov.ma.tce.seguranca.interno.server.beans.usuario.Usuario;
+import br.gov.ma.tce.seguranca.interno.server.beans.usuario.UsuarioFacadeBean;
+
+
+@Entity(name = UsuarioFiscalizacao.NAME)
+@Table(schema = "obralegal", name = "usuario_fiscalizacao")
+public class UsuarioFiscalizacao implements Serializable {
+	public static final String NAME = "obralegal_Usuario_Fiscalizacao";
+	private static final long serialVersionUID = 1L;
+
+	@Id
+	@SequenceGenerator(name = "obralegal.seq_usuario_fiscalizacao", sequenceName = "obralegal.seq_usuario_fiscalizacao", allocationSize = 1)
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "obralegal.seq_usuario_fiscalizacao")
+	@Column(name = "usuario_fiscalizacao_id")
+	private Integer usuarioFiscalizacaoId;
+
+	@Column(name = "nivel_usuario", columnDefinition = "TEXT")
+	private String nivelUsuario;
+
+	@Column(name = "servidor_matricula", columnDefinition = "INT4")
+	private Integer servidorMatricula;
+
+	@Column(name = "senha", columnDefinition = "TEXT")
+	private String senha;
+
+	@Column(name = "ativo", columnDefinition = "BOOLEAN")
+	private Boolean ativo;
+
+	@Column(name = "usuario_id", columnDefinition = "INT4")
+	private Integer usuarioId;
+
+	@Transient
+	private Usuario usuario;
+	
+	@Transient
+	private String repeteSenha;
+
+	@Transient
+	public String getNome() {
+		try {
+			return getUsuario().getNome();
+		} catch (Exception e) {
+			return "-";
+		}
+	}
+
+	@Transient
+	public String getMatricula() {
+		try {
+			return getUsuario().getMatricula().toString();
+		} catch (Exception e) {
+			return "-";
+		}
+	}
+
+	@Transient
+	public String getNomeMatriculaStr() {
+		try {
+			return getNome() + " (" + getMatricula() + ")";
+		} catch (Exception e) {
+			return "-";
+		}
+	}
+
+	@Transient
+	public String getEmail() {
+		try {
+			return getUsuario().getEmail().toLowerCase();
+		} catch (Exception e) {
+			return "-";
+		}
+	}
+
+	@Transient
+	public String getCargoServidor() {
+		try {
+			return getUsuario().getServidor().getCargoEfetivo();
+		} catch (Exception e) {
+			return "-";
+		}
+	}
+
+	@Transient
+	public String getNivelUsuarioStr() {
+		try {
+			if (getNivelUsuario().equals("1")) {
+				return "Administrador";
+			} else if (getNivelUsuario().equals("2")) {
+				return "Auditor";
+			} else {
+				return "Estagiário";
+			}
+		} catch (Exception e) {
+			return "-";
+		}
+	}
+
+	public Integer getUsuarioFiscalizacaoId() {
+		return usuarioFiscalizacaoId;
+	}
+
+	public void setUsuarioFiscalizacaoId(Integer usuarioFiscalizacaoId) {
+		this.usuarioFiscalizacaoId = usuarioFiscalizacaoId;
+	}
+
+	public String getNivelUsuario() {
+		return nivelUsuario;
+	}
+
+	public void setNivelUsuario(String nivelUsuario) {
+		this.nivelUsuario = nivelUsuario;
+	}
+
+	public Integer getServidorMatricula() {
+		return servidorMatricula;
+	}
+
+	public void setServidorMatricula(Integer servidorMatricula) {
+		this.servidorMatricula = servidorMatricula;
+	}
+
+	public String getSenha() {
+		return senha;
+	}
+
+	public void setSenha(String senha) {
+		this.senha = senha;
+	}
+
+	public Boolean getAtivo() {
+		return ativo;
+	}
+
+	public void setAtivo(Boolean ativo) {
+		this.ativo = ativo;
+	}
+
+	public Integer getUsuarioId() {
+		return usuarioId;
+	}
+
+	public void setUsuarioId(Integer usuarioId) {
+		this.usuarioId = usuarioId;
+	}
+
+	public Usuario getUsuario() {
+		if (this.getUsuarioId() != null) {
+			try {
+				UsuarioFacadeBean usuarioFacade;
+				InitialContext ctx = new InitialContext();
+				usuarioFacade = (UsuarioFacadeBean) ctx.lookup(UsuarioFacadeBean.JNDI_OBRALEGAL);
+				usuario = usuarioFacade.findByPrimaryKey(this.getUsuarioId());
+			} catch (Exception e) {
+				e.printStackTrace();
+				usuario = null;
+			}
+			return usuario;
+		} else {
+			return null;
+		}
+	}
+
+	public void setUsuario(Usuario usuario) {
+		try {
+			if (usuario == null) {
+				this.usuario = null;
+				this.usuarioId = null;
+			} else {
+				this.usuario = usuario;
+				this.usuarioId = usuario.getUsuarioId();
+			}
+		} catch (NullPointerException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public String getRepeteSenha() {
+		return repeteSenha;
+	}
+
+	public void setRepeteSenha(String repeteSenha) {
+		this.repeteSenha = repeteSenha;
+	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((usuarioFiscalizacaoId == null) ? 0 : usuarioFiscalizacaoId.hashCode());
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		UsuarioFiscalizacao other = (UsuarioFiscalizacao) obj;
+		if (usuarioFiscalizacaoId == null) {
+			if (other.usuarioFiscalizacaoId != null)
+				return false;
+		} else if (!usuarioFiscalizacaoId.equals(other.usuarioFiscalizacaoId))
+			return false;
+		return true;
+	}
+
+}

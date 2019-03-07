@@ -1,0 +1,85 @@
+<?page title="Obra Legal - TCE/MA - Inserir documentos relativos às obras"?>
+<?link rel="shortcut icon" type="image/x-icon" href="/imagens/favicon.ico"?>
+<?init class="org.zkoss.zk.ui.util.Composition" arg0="/template.zul" ?>
+
+<zk>
+	<panel
+		viewModel="@id('vm') @init('br.gov.ma.tce.obralegal.pages.DocumentosVM')"
+		self="@define(conteudo)" title="Inserir documentos relativos às obras"
+		border="normal"
+		onCreate="@command('carregarObrasServicosPorMandato')">
+		<panelchildren>
+			<grid model="@load(vm.obras)" mold="paging" pageSize="10"
+				emptyMessage="Nenhuma obra por execução direta encontrada
+						para o mandato selecionado.">
+				<columns>
+					<column label="Cód." align="center" width="60px" />
+					<column label="Tipo" align="center" />
+					<column label="Tipo execução" align="center"
+						width="200px" />
+					<column label="Bem público" align="center"
+						width="135px" />
+					<column label="Dias para alterar/excluir"
+						align="center" width="200px" />
+					<column label="Contrato Nº/Ano-Obra" align="center"
+						width="200px" />
+					<column label="Situação da obra" align="center"
+						width="150px" />
+					<column label="Ações" align="center" width="125px" />
+				</columns>
+				<template name="model" var="obra">
+					<row>
+						<label value="@load(obra.obraServicoId)" />
+						<label
+							value="@load(obra.tipoObraServico.descricao)" />
+						<label
+							value="@load(obra.tipoExecucao.descricao)" />
+						<label value="@load(obra.bemPublico)" />
+						<label value="@load(obra.diasAlterarExcluir)" />
+						<label
+							value="@load(obra.contrato.numeroAnoContratoStr)" />
+						<label
+							value="@load(obra.situacaoAtual.tipoSituacao.descricao)" />
+						<div>
+							<button
+								onClick="@command('abrirModalListarDocumentos', obra=obra, visible=true)"
+								tooltiptext="Listar documentos" iconSclass="fas fa-file-alt" />
+							<button
+								onClick="@command('abrirModalInserirDocumentos', obra=obra, visible=true)"
+								tooltiptext="Inserir documentos"
+								iconSclass="fas fa-plus-circle" />
+						</div>
+
+					</row>
+				</template>
+			</grid>
+
+			<window id="modalListarDocumentos" mode="modal"
+				visible="false" sclass="custom-window">
+				<label value="Listar documentos"
+					sclass="custom-title" />
+
+				<separator />
+				<div align="center">
+					<button tooltiptext="Fechar"
+						style="font-weight:bold" label="FECHAR"
+						iconSclass="fas fa-times-circle"
+						onClick="@command('abrirModalListarDocumentos', obra=null, visible=false)" />
+				</div>
+			</window>
+
+			<window id="modalInserirDocumentos" mode="modal"
+				visible="false" sclass="custom-window">
+				<label value="Inserir documentos" sclass="custom-title" />
+
+				<separator />
+				<div align="center">
+					<button tooltiptext="Fechar"
+						style="font-weight:bold" label="FECHAR"
+						iconSclass="fas fa-times-circle"
+						onClick="@command('abrirModalInserirDocumentos', obra=null, visible=false)" />
+				</div>
+			</window>
+		</panelchildren>
+	</panel>
+</zk>

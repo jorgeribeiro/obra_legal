@@ -1,0 +1,118 @@
+<?page title="Obra Legal - TCE/MA - Solicitações"?>
+<?link rel="shortcut icon" type="image/x-icon" href="/imagens/favicon.ico"?>
+<?init class="org.zkoss.zk.ui.util.Composition" arg0="/template.zul" ?>
+
+<zk>
+	<panel
+		viewModel="@id('vm') @init('br.gov.ma.tce.obralegalfiscalizacao.pages.SolicitacoesVM')"
+		self="@define(conteudo)" title="Solicitações pendentes"
+		border="normal"
+		onCreate="@command('carregarSolicitacoesPorStatus', status='Pendentes')">
+		<panelchildren>
+			<vlayout>
+				<grid model="@load(vm.solicitacoes)" mold="paging"
+					pageSize="10"
+					emptyMessage="Nenhuma solicitação pendente encontrada.">
+					<columns>
+						<column label="Código da obra" align="center"
+							width="100px" />
+						<column label="Bem público" align="center" />
+						<column label="Unidade" align="center" />
+						<column label="Ente" align="center" />
+						<column label="Data da solicitação"
+							align="center" />
+						<column label="Dias solicitados" align="center" width="125px" />
+						<column label="Observação da solicitação"
+							align="center" />
+						<column label="Ações" align="center"
+							width="100px" />
+					</columns>
+					<template name="model" var="solicitacao">
+						<row>
+							<label
+								value="@load(solicitacao.obraServico.obraServicoId)" />
+							<label
+								value="@load(solicitacao.obraServico.bemPublicoStr)" />
+							<label
+								value="@load(solicitacao.obraServico.unidadeStr)" />
+							<label
+								value="@load(solicitacao.obraServico.enteStr)" />
+							<label
+								value="@load(solicitacao.dataInclusao)" />
+							<label
+								value="@load(solicitacao.diasSolicitados)" />
+							<label
+								value="@load(solicitacao.observacaoPedido)" />
+							<div>
+								<button
+									onClick="@command('abrirModalRevisarSolicitacao', visible=true, solicitacao=solicitacao)"
+									tooltiptext="Revisar solicitação"
+									iconSclass="fas fa-external-link-alt " />
+							</div>
+						</row>
+					</template>
+				</grid>
+
+				<window id="modalRevisarSolicitacao" mode="modal"
+					visible="false" sclass="custom-window" width="300px">
+					<vbox align="left">
+						<label value="Revisar solicitação"
+							sclass="custom-title" />
+						<vlayout spacing="7px">
+							<vlayout spacing="1px">
+								<label value="Dias solicitados:"
+									style="font-weight:bold" />
+								<label
+									value="@load(vm.solicitacaoSelecionada.diasSolicitados)" />
+							</vlayout>
+							<vlayout spacing="1px">
+								<label value="Observações do pedido:"
+									style="font-weight:bold" />
+								<label
+									value="@load(vm.solicitacaoSelecionada.observacaoPedido)" />
+							</vlayout>
+							<vlayout spacing="1px">
+								<label value="Status:"
+									style="font-weight:bold" />
+								<combobox
+									value="@load(vm.solicitacaoSelecionada.status ? 'Aprovar' : 'Desaprovar')"
+									selectedItem="@save(vm.solicitacaoSelecionada.status)">
+									<comboitem label="Aprovar"
+										value="true" />
+									<comboitem label="Desaprovar"
+										value="false" />
+								</combobox>
+							</vlayout>
+							<vlayout spacing="1px">
+								<label value="Dias autorizados:"
+									style="font-weight:bold" />
+								<intbox
+									disabled="@load(!vm.solicitacaoSelecionada.status)"
+									value="@bind(vm.solicitacaoSelecionada.diasAutorizados)" />
+							</vlayout>
+							<vlayout spacing="1px">
+								<label
+									value="Observação do atendimento:" style="font-weight:bold" />
+								<textbox rows="3"
+									placeholder="Descreva alguma observação acerca da aprovação ou desaprovação desta solicitação."
+									value="@bind(vm.solicitacaoSelecionada.observacaoAtendimento)" />
+							</vlayout>
+						</vlayout>
+
+						<separator />
+						<div align="center">
+							<button tooltiptext="Fechar"
+								style="font-weight:bold" label="FECHAR"
+								iconSclass="fas fa-times-circle"
+								onClick="@command('abrirModalRevisarSolicitacao', visible=false, solicitacao=null)" />
+							<button tooltiptext="Enviar revisão"
+								style="font-weight:bold" label="ENVIAR REVISÃO"
+								iconSclass="fas fa-arrow-circle-right "
+								onClick="@command('enviarRevisao')" />
+						</div>
+					</vbox>
+				</window>
+			</vlayout>
+		</panelchildren>
+	</panel>
+</zk>

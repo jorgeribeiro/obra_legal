@@ -1,0 +1,63 @@
+<?page title="Obra Legal - TCE/MA - Obras por execução direta"?>
+<?link rel="shortcut icon" type="image/x-icon" href="/imagens/favicon.ico"?>
+<?init class="org.zkoss.zk.ui.util.Composition" arg0="/template.zul" ?>
+
+<zk>
+	<panel
+		viewModel="@id('vm') @init('br.gov.ma.tce.obralegalfiscalizacao.pages.ExecucaoDiretaVM')"
+		self="@define(conteudo)"
+		title="Fiscalização - Obras por execução direta" border="normal">
+		<panelchildren>
+			<vlayout>
+				<combobox placeholder="Ente"
+					onSelect="@command('carregarObrasPorEnte')"
+					selectedItem="@bind(vm.enteSelecionado)" model="@load(vm.entes)">
+					<template name="model" var="ente">
+						<comboitem label="@load(ente.nome)"
+							value="@load(ente)" />
+					</template>
+				</combobox>
+				<grid model="@load(vm.obras)" mold="paging"
+					pageSize="10"
+					emptyMessage="@load(empty vm.enteSelecionado ? 'Selecione um ente.' : 'Nenhuma obra por execução direta encontrada
+						para o ente selecionado.')">
+					<columns>
+						<column label="Cód." align="center"
+							width="60px" />
+						<column label="Bem público" align="center" />
+						<column label="Dias para alterar/excluir"
+							align="center" width="200px" />
+						<column label="Unidade" align="center" />
+						<column label="Data inclusão" align="center"
+							width="135px" />
+						<column label="Contrato Nº/Ano-Obra"
+							align="center" width="200px" />
+						<column label="Situação da obra" align="center"
+							width="150px" />
+						<column label="Ações" align="center"
+							width="125px" />
+					</columns>
+					<template name="model" var="obra">
+						<row>
+							<label value="@load(obra.obraServicoId)" />
+							<label value="@load(obra.bemPublico)" />
+							<label
+								value="@load(obra.diasAlterarExcluir)" />
+							<label value="@load(obra.unidadeStr)" />
+							<label value="@load(obra.dataInclusaoStr)" />
+							<label
+								value="@load(obra.contrato.numeroAnoContratoStr)" />
+							<label value="@load(obra.situacaoAtualStr)" />
+							<div>
+								<button label="Fiscalizar obra"
+									onClick="@command('abrirPageFiscalizacaoObraServico', obraServico=obra)"
+									tooltiptext="Fiscalizar obra"
+									iconSclass="fas fa-arrow-circle-right" />
+							</div>
+						</row>
+					</template>
+				</grid>
+			</vlayout>
+		</panelchildren>
+	</panel>
+</zk>

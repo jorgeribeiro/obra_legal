@@ -1,0 +1,938 @@
+<?page title="Obra Legal - TCE/MA - Obras por execução direta"?>
+<?link rel="shortcut icon" type="image/x-icon" href="/imagens/favicon.ico"?>
+<?init class="org.zkoss.zk.ui.util.Composition" arg0="/template.zul" ?>
+
+<zk>
+	<panel
+		viewModel="@id('vm') @init('br.gov.ma.tce.obralegal.pages.ExecucaoDiretaVM')"
+		self="@define(conteudo)" title="Obras por execução direta"
+		border="normal" onCreate="@command('carregarObrasPorMandato')">
+		<panelchildren>
+			<vlayout>
+				<button label="Nova obra"
+					onClick="@command('abrirModalNovaObra', visible=true)"
+					iconSclass="fas fa-plus-circle" />
+				<grid model="@load(vm.obras)" mold="paging"
+					pageSize="10"
+					emptyMessage="Nenhuma obra por execução direta encontrada
+						para o mandato selecionado.">
+					<columns>
+						<column label="Cód." align="center"
+							width="60px" />
+						<column label="Bem público" align="center" />
+						<column label="Dias para alterar/excluir"
+							align="center" width="200px" />
+						<column label="Data inclusão" align="center"
+							width="135px" />
+						<column label="Contrato Nº/Ano-Obra"
+							align="center" width="200px" />
+						<column label="Situação da obra" align="center"
+							width="150px" />
+						<column label="Setor beneficiado"
+							align="center" />
+						<column label="Tipo obra" align="center"
+							width="135px" />
+						<column label="Ações" align="center"
+							width="125px" />
+					</columns>
+					<template name="model" var="obra">
+						<row>
+							<label value="@load(obra.obraServicoId)" />
+							<label value="@load(obra.bemPublico)" />
+							<label
+								value="@load(obra.diasAlterarExcluir)" />
+							<label value="@load(obra.dataInclusaoStr)" />
+							<label
+								value="@load(obra.contrato.numeroAnoContratoStr)" />
+							<label value="@load(obra.situacaoAtualStr)" />
+							<label
+								value="@load(obra.setorBeneficiado.descricao)" />
+							<label
+								value="@load(obra.tipoObra.descricao)" />
+							<div>
+								<button
+									onClick="@command('abrirModalAlterarObraServico', obra=obra, visible=true)"
+									tooltiptext="Alterar obra" iconSclass="fas fa-edit" />
+								<button
+									onClick="@command('abrirModalExcluirObra', obra=obra, visible=true)"
+									tooltiptext="Excluir obra" iconSclass="fas fa-minus-circle" />
+							</div>
+						</row>
+					</template>
+				</grid>
+			</vlayout>
+
+			<window id="modalNovaObra" mode="modal" visible="false"
+				width="500px" sclass="custom-window">
+				<vbox align="left">
+					<label value="Novo registro de Obra"
+						sclass="custom-title" />
+					<hlayout spacing="10px">
+						<label hflex="1"
+							value="Para registrar uma nova obra, é preciso
+							primeiramente selecionar o contrato ao qual
+							ela estará vinculada." />
+						<button tooltiptext="Selecionar contrato"
+							label="Selecionar contrato" autodisable="self"
+							onClick="@command('abrirModalSelecionaContrato', visible=true)"
+							iconSclass="fas fa-clipboard" />
+					</hlayout>
+					<vlayout spacing="1px" style="line-height:0px">
+						<hlayout spacing="5px">
+							<label value="Contrato selecionado:"
+								sclass="custom-label-4" />
+							<label
+								value="@load(vm.obraServico.contrato.numeroAnoContratoStr)"
+								sclass="custom-label-4" />
+						</hlayout>
+						<hlayout spacing="5px">
+							<label value="Contratada(o):"
+								sclass="custom-label-4" />
+							<label
+								value="@load(vm.obraServico.contrato.fornecedor.nome)"
+								sclass="custom-label-4" />
+						</hlayout>
+						<hlayout spacing="5px">
+							<label value="Valor do contrato:"
+								sclass="custom-label-4" />
+							<label
+								value="@load(vm.obraServico.contrato.valorContratoStr)"
+								sclass="custom-label-4" />
+						</hlayout>
+						<hlayout spacing="5px">
+							<label value="Data de assinatura:"
+								sclass="custom-label-4" />
+							<label
+								value="@load(vm.obraServico.contrato.dataAssinaturaStr)"
+								sclass="custom-label-4" />
+						</hlayout>
+						<hlayout spacing="5px">
+							<label value="Data de vigência:"
+								sclass="custom-label-4" />
+							<label
+								value="@load(vm.obraServico.contrato.dataVigenciaStr)"
+								sclass="custom-label-4" />
+						</hlayout>
+					</vlayout>
+
+					<separator />
+					<div align="center">
+						<button tooltiptext="Fechar"
+							style="font-weight:bold" label="FECHAR"
+							iconSclass="fas fa-times-circle"
+							onClick="@command('abrirModalNovaObra', visible=false)" />
+						<button tooltiptext="Continuar"
+							style="font-weight:bold" label="CONTINUAR"
+							iconSclass="fas fa-arrow-circle-right"
+							onClick="@command('abrirModalPreencheDadosObra', visible=true)" />
+					</div>
+				</vbox>
+			</window>
+
+			<window id="modalSelecionaContrato" mode="modal"
+				visible="false" sclass="custom-window"
+				onOK="@command('carregaContratosPorAno')">
+				<vbox align="left">
+					<label value="Seleção de contrato"
+						sclass="custom-title" />
+					<vlayout spacing="1px">
+						<hbox align="center">
+							<intbox width="200px"
+								placeholder="Ano do contrato" value="@bind(vm.anoContrato)"
+								maxlength="4" />
+							<button iconSclass="fas fa-search"
+								onClick="@command('carregaContratosPorAno')" />
+						</hbox>
+						<grid width="1100px" model="@load(vm.contratos)"
+							mold="paging" pageSize="5"
+							emptyMessage="Nenhum contrato encontrado.">
+							<columns>
+								<column label="Nº Contrato"
+									align="center" />
+								<column label="Nº Processo"
+									align="center" />
+								<column label="Tipo" align="center" />
+								<column label="Valor" align="center" />
+								<column label="Selecionar"
+									align="center" width="110px" />
+							</columns>
+							<template name="model" var="contrato">
+								<row>
+									<label
+										value="@load(contrato.numeroAnoContratoStr)" />
+									<label
+										value="@load(contrato.licitacao.numeroAnoProcessoStr)" />
+									<label
+										value="@load(contrato.licitacao.tipoProcedimentoLicitacao.nome)" />
+									<label
+										value="@load(contrato.valorContratoStr)" />
+									<button
+										onClick="@command('selecionaContrato', contrato=contrato)"
+										iconSclass="fas fa-check-circle" />
+								</row>
+							</template>
+						</grid>
+					</vlayout>
+
+					<separator />
+					<div align="center">
+						<button tooltiptext="Fechar"
+							style="font-weight:bold" label="FECHAR"
+							iconSclass="fas fa-times-circle"
+							onClick="@command('abrirModalSelecionaContrato', visible=false)" />
+					</div>
+				</vbox>
+			</window>
+
+			<window id="modalPreencheDadosObra" mode="modal"
+				visible="false" sclass="custom-window">
+				<vbox align="left">
+					<label value="Dados da Obra" sclass="custom-title" />
+					<vlayout spacing="1px">
+						<hlayout spacing="5px">
+							<label value="Contrato selecionado:" />
+							<label
+								value="@load(vm.obraServico.contrato.numeroAnoContratoStr)" />
+						</hlayout>
+						<tabbox>
+							<tabs>
+								<tab label="Controles" />
+								<tab label="Localização" />
+								<tab label="Profissionais" />
+								<tab label="Situação" />
+								<tab label="Medição" />
+							</tabs>
+							<tabpanels>
+								<tabpanel>
+									<hlayout spacing="15px">
+										<vlayout spacing="7px">
+											<vlayout spacing="1px">
+												<label
+													value="Bem público:" style="font-weight:bold" />
+												<textbox width="300px"
+													value="@bind(vm.obraServico.bemPublico)"
+													onChange="self.setValue(self.getValue().toUpperCase().trim());" />
+											</vlayout>
+											<vlayout spacing="1px">
+												<label
+													value="Valor inicial:" style="font-weight:bold" />
+												<doublebox width="250px"
+													value="@bind(vm.obraServico.valorInicial)" />
+											</vlayout>
+											<vlayout spacing="1px">
+												<label
+													value="Nº de ordem de serviço:" style="font-weight:bold" />
+												<textbox
+													value="@bind(vm.obraServico.nOrdemServico)" />
+											</vlayout>
+										</vlayout>
+										<vlayout spacing="7px">
+											<vlayout spacing="1px">
+												<label
+													value="Data início:" style="font-weight:bold" />
+												<datebox
+													format="dd/MM/yyyy" placeholder="dd/mm/aaaa" maxlength="10"
+													value="@bind(vm.obraServico.dataInicio)" />
+											</vlayout>
+											<vlayout spacing="1px">
+												<label value="Data fim:"
+													style="font-weight:bold" />
+												<datebox
+													format="dd/MM/yyyy" placeholder="dd/mm/aaaa" maxlength="10"
+													value="@bind(vm.obraServico.dataFim)" />
+											</vlayout>
+											<vlayout spacing="1px">
+												<label
+													value="Data de entrega:" style="font-weight:bold" />
+												<datebox
+													format="dd/MM/yyyy" placeholder="dd/mm/aaaa" maxlength="10"
+													value="@bind(vm.obraServico.dataEntrega)" />
+											</vlayout>
+										</vlayout>
+										<vlayout spacing="7px">
+											<vlayout spacing="1px">
+												<label
+													value="Setor beneficiado:" style="font-weight:bold" />
+												<combobox
+													model="@bind(vm.setores)"
+													selectedItem="@bind(vm.obraServico.setorBeneficiado)">
+													<template
+														name="model" var="setor">
+														<comboitem
+															label="@load(setor.descricao)" value="@load(setor)" />
+													</template>
+												</combobox>
+											</vlayout>
+											<vlayout spacing="1px">
+												<label
+													value="Tipo de obra:" style="font-weight:bold" />
+												<combobox
+													model="@bind(vm.tiposObra)"
+													selectedItem="@bind(vm.obraServico.tipoObra)">
+													<template
+														name="model" var="tipoObra">
+														<comboitem
+															label="@load(tipoObra.descricao)"
+															value="@load(tipoObra)" />
+													</template>
+												</combobox>
+											</vlayout>
+											<vlayout spacing="1px">
+												<label
+													value="Descrição:" style="font-weight:bold" />
+												<textbox width="250px"
+													rows="5" value="@bind(vm.obraServico.descricao)"
+													onChange="self.setValue(self.getValue().toUpperCase().trim());" />
+											</vlayout>
+										</vlayout>
+										<vlayout spacing="7px">
+											<vlayout spacing="1px">
+												<label value="Endereço:"
+													style="font-weight:bold" />
+												<textbox
+													value="@bind(vm.obraServico.endereco)"
+													onChange="self.setValue(self.getValue().toUpperCase().trim());" />
+											</vlayout>
+											<vlayout spacing="1px">
+												<label value="Bairro:"
+													style="font-weight:bold" />
+												<textbox
+													value="@bind(vm.obraServico.bairro)"
+													onChange="self.setValue(self.getValue().toUpperCase().trim());" />
+											</vlayout>
+											<vlayout spacing="1px">
+												<label value="CEP:"
+													style="font-weight:bold" />
+												<textbox
+													value="@bind(vm.obraServico.cep)"
+													onChange="self.setValue(self.getValue().toUpperCase().trim());" />
+											</vlayout>
+										</vlayout>
+									</hlayout>
+								</tabpanel>
+								<tabpanel>
+									<hlayout spacing="15px">
+										<button
+											label="Incluir localização"
+											onClick="@command('abrirModalIncluirLocalizacao', visible=true)" />
+										<grid
+											model="@load(vm.localizacoes)" width="600px" mold="paging"
+											pageSize="3"
+											emptyMessage="Nenhuma localização incluída nesta obra.">
+											<columns>
+												<column
+													label="Descrição" />
+												<column label="Latitude"
+													width="150px" align="center" />
+												<column
+													label="Longitude" width="150px" align="center" />
+											</columns>
+											<template name="model"
+												var="localizacao">
+												<row>
+													<label
+														value="@load(localizacao.descricao)" />
+													<label
+														value="@load(localizacao.latitude)" />
+													<label
+														value="@load(localizacao.longitude)" />
+												</row>
+											</template>
+										</grid>
+									</hlayout>
+								</tabpanel>
+								<tabpanel>
+									<hlayout spacing="15px">
+										<button
+											label="Incluir profissional"
+											onClick="@command('abrirModalIncluirProfissional', visible=true)" />
+										<grid
+											model="@load(vm.profissionaisObra)" width="600px"
+											mold="paging" pageSize="3"
+											emptyMessage="Nenhum profissional incluído nesta obra.">
+											<columns>
+												<column label="Nome" />
+												<column label="Tipo"
+													width="200px" align="center" />
+											</columns>
+											<template name="model"
+												var="profissionalObra">
+												<row>
+													<label
+														value="@load(profissionalObra.nomeProfissional)" />
+													<label
+														value="@load(profissionalObra.tipoProfissional.descricao)" />
+												</row>
+											</template>
+										</grid>
+									</hlayout>
+								</tabpanel>
+								<tabpanel>
+									<hlayout spacing="15px">
+										<button label="Incluir situação"
+											onClick="@command('abrirModalIncluirSituacao', visible=true)" />
+										<grid
+											model="@load(vm.situacoes)" width="600px" mold="paging"
+											pageSize="3"
+											emptyMessage="Nenhuma situação incluída nesta obra.">
+											<columns>
+												<column label="Tipo"
+													width="200px" />
+												<column
+													label="Data situação" align="center" width="150px" />
+												<column
+													label="Descrição" align="center" />
+											</columns>
+											<template name="model"
+												var="situacao">
+												<row>
+													<label
+														value="@load(situacao.tipoSituacao.descricao)" />
+													<label
+														value="@load(situacao.dataSituacaoStr)" />
+													<label
+														value="@load(situacao.descricao)" />
+												</row>
+											</template>
+										</grid>
+									</hlayout>
+								</tabpanel>
+								<tabpanel></tabpanel>
+							</tabpanels>
+						</tabbox>
+					</vlayout>
+
+					<separator />
+					<div align="center">
+						<button tooltiptext="Fechar"
+							style="font-weight:bold" label="FECHAR"
+							iconSclass="fas fa-times-circle"
+							onClick="@command('abrirModalPreencheDadosObra', visible=false)" />
+						<button tooltiptext="Salvar alterações"
+							style="font-weight:bold" label="SALVAR ALTERAÇÕES"
+							iconSclass="fas fa-check-circle"
+							onClick="@command('salvarAlteracoes')" />
+					</div>
+				</vbox>
+			</window>
+
+			<window id="modalIncluirLocalizacao" mode="modal"
+				visible="false" sclass="custom-window">
+				<vbox align="left">
+					<label value="Incluir localização"
+						sclass="custom-title" />
+					<vlayout spacing="7px">
+						<vlayout spacing="1px">
+							<label value="Coordenadas:"
+								style="font-weight:bold" />
+							<hlayout>
+								<decimalbox placeholder="Latitude"
+									value="@bind(vm.localizacao.latitude)" />
+								<decimalbox placeholder="Longitude"
+									value="@bind(vm.localizacao.longitude)" />
+							</hlayout>
+						</vlayout>
+						<vlayout spacing="1px">
+							<label value="Descrição:"
+								style="font-weight:bold" />
+							<textbox rows="5"
+								value="@bind(vm.localizacao.descricao)"
+								onChange="self.setValue(self.getValue().toUpperCase().trim());" />
+						</vlayout>
+					</vlayout>
+
+					<separator />
+					<div align="center">
+						<button tooltiptext="Fechar"
+							style="font-weight:bold" label="FECHAR"
+							iconSclass="fas fa-times-circle"
+							onClick="@command('abrirModalIncluirLocalizacao', visible=false)" />
+						<button tooltiptext="Incluir localização"
+							style="font-weight:bold" label="INCLUIR LOCALIZAÇÃO"
+							iconSclass="fas fa-plus-circle"
+							onClick="@command('incluirLocalizacao')" />
+					</div>
+				</vbox>
+			</window>
+
+			<window id="modalIncluirProfissional" mode="modal"
+				visible="false" sclass="custom-window">
+				<vbox align="left">
+					<label value="Incluir profissional"
+						sclass="custom-title" />
+					<vlayout spacing="1px">
+						<label value="Profissionais disponíveis:" />
+						<grid model="@load(vm.profissionais)"
+							mold="paging" width="900px" pageSize="5"
+							emptyMessage="Nenhum profissional encontrado.">
+							<columns>
+								<column label="Nome" />
+								<column label="CPF" align="center"
+									width="150px" />
+								<column label="Documento" align="center"
+									width="150px" />
+								<column label="Modalidade"
+									align="center" width="150px" />
+								<column label="Título" align="center"
+									width="150px" />
+								<column label="Incluir" align="center"
+									width="100px" />
+							</columns>
+							<template name="model" var="profissional">
+								<row>
+									<label
+										value="@load(profissional.nome)" />
+									<label
+										value="@load(profissional.cpfStr)" />
+									<label
+										value="@load(profissional.documentoProfissional)" />
+									<label
+										value="@load(profissional.modalidadeProfissional)" />
+									<label
+										value="@load(profissional.titulo)" />
+									<button
+										onClick="@command('abrirModalIncluirProfissionalSelecionaTipo', profissional=profissional, visible=true)"
+										iconSclass="fas fa-user-plus" />
+								</row>
+							</template>
+						</grid>
+					</vlayout>
+					<button label="Cadastrar profissional"
+						onClick="@command('abrirModalCadastrarProfissional', visible=true)" />
+
+					<separator />
+					<div align="center">
+						<button tooltiptext="Fechar"
+							style="font-weight:bold" label="FECHAR"
+							iconSclass="fas fa-times-circle"
+							onClick="@command('abrirModalIncluirProfissional', visible=false)" />
+					</div>
+				</vbox>
+			</window>
+
+			<window id="modalIncluirProfissionalSelecionaTipo"
+				mode="modal" visible="false" sclass="custom-window">
+				<vbox align="left">
+					<label
+						value="Incluir profissional (seleção de tipo)"
+						sclass="custom-title" />
+					<hlayout>
+						<label value="Profissional:"
+							style="font-weight:bold" />
+						<label value="@load(vm.profissional.nome)" />
+					</hlayout>
+					<vlayout spacing="1px">
+						<label value="Tipo de profissional:"
+							style="font-weight:bold" />
+						<combobox model="@bind(vm.tiposProfissional)"
+							selectedItem="@bind(vm.profissionalObra.tipoProfissional)">
+							<template name="model"
+								var="tipoProfissional">
+								<comboitem
+									label="@load(tipoProfissional.descricao)"
+									value="@load(tipoProfissional)" />
+							</template>
+						</combobox>
+					</vlayout>
+
+					<separator />
+					<div align="center">
+						<button tooltiptext="Fechar"
+							style="font-weight:bold" label="FECHAR"
+							iconSclass="fas fa-times-circle"
+							onClick="@command('abrirModalIncluirProfissionalSelecionaTipo', profissional=null, visible=false)" />
+						<button tooltiptext="Incluir profissional"
+							style="font-weight:bold" label="INCLUIR PROFISSIONAL"
+							iconSclass="fas fa-user-plus"
+							onClick="@command('incluirProfissional')" />
+					</div>
+				</vbox>
+			</window>
+
+			<window id="modalCadastrarProfissional"
+				onOK="@command('validarPessoaFisica')" mode="modal" visible="false"
+				sclass="custom-window">
+				<vbox align="left">
+					<label value="Cadastrar profissional"
+						sclass="custom-title" />
+					<vlayout spacing="7px">
+						<hlayout>
+							<label value="Nome:"
+								style="font-weight:bold" />
+							<label value="@load(vm.profissional.nome)" />
+						</hlayout>
+						<vlayout spacing="1px">
+							<label value="CPF:"
+								style="font-weight:bold" />
+							<hlayout spacing="5px">
+								<textbox maxlength="11"
+									value="@bind(vm.profissional.pessoaCpf)" />
+								<button label="Validar CPF"
+									onClick="@command('validarPessoaFisica')" />
+							</hlayout>
+						</vlayout>
+						<vlayout spacing="1px">
+							<label
+								value="Documento profissional (CREA/CAU):"
+								style="font-weight:bold" />
+							<textbox
+								value="@bind(vm.profissional.documentoProfissional)"
+								onChange="self.setValue(self.getValue().toUpperCase().trim());"
+								disabled="@load(empty vm.pessoaFisica)" />
+						</vlayout>
+						<vlayout spacing="1px">
+							<label value="Modalidade profissional:"
+								style="font-weight:bold" />
+							<combobox
+								model="@bind(vm.modalidadesProfissional)"
+								selectedItem="@bind(vm.profissional.modalidadeProfissional)"
+								disabled="@load(empty vm.pessoaFisica)">
+								<template name="model"
+									var="modalidadeProfissional">
+									<comboitem
+										label="@load(modalidadeProfissional.descricao)"
+										value="@load(modalidadeProfissional)" />
+								</template>
+							</combobox>
+						</vlayout>
+						<vlayout spacing="1px">
+							<label value="Título profissional:"
+								style="font-weight:bold" />
+							<textbox
+								value="@bind(vm.profissional.titulo)"
+								onChange="self.setValue(self.getValue().toUpperCase().trim());"
+								disabled="@load(empty vm.pessoaFisica)" />
+						</vlayout>
+					</vlayout>
+
+					<separator />
+					<div align="center">
+						<button tooltiptext="Fechar"
+							style="font-weight:bold" label="FECHAR"
+							iconSclass="fas fa-times-circle"
+							onClick="@command('abrirModalCadastrarProfissional', visible=false)" />
+						<button tooltiptext="Cadastrar"
+							style="font-weight:bold" label="CADASTRAR"
+							iconSclass="fas fa-check-circle"
+							onClick="@command('cadastrarProfissional')" />
+					</div>
+				</vbox>
+			</window>
+
+			<window id="modalIncluirSituacao" mode="modal"
+				visible="false" sclass="custom-window">
+				<vbox align="left">
+					<label value="Incluir situação"
+						sclass="custom-title" />
+					<vlayout spacing="7px">
+						<vlayout spacing="1px">
+							<label value="Tipo de situação:"
+								style="font-weight:bold" />
+							<combobox model="@bind(vm.tiposSituacao)"
+								selectedItem="@bind(vm.situacao.tipoSituacao)">
+								<template name="model"
+									var="tipoSituacao">
+									<comboitem
+										label="@load(tipoSituacao.descricao)"
+										value="@load(tipoSituacao)" />
+								</template>
+							</combobox>
+						</vlayout>
+						<vlayout spacing="1px">
+							<label value="Veículo de publicação:"
+								style="font-weight:bold" />
+							<textbox
+								value="@bind(vm.situacao.veiculoPublicacao)"
+								onChange="self.setValue(self.getValue().toUpperCase().trim());" />
+						</vlayout>
+						<vlayout spacing="1px">
+							<label value="Data de publicação:"
+								style="font-weight:bold" />
+							<datebox format="dd/MM/yyyy"
+								placeholder="dd/mm/aaaa" maxlength="10"
+								value="@bind(vm.situacao.dataPublicacao)" />
+						</vlayout>
+						<vlayout spacing="1px">
+							<label value="Data da situação:"
+								style="font-weight:bold" />
+							<datebox format="dd/MM/yyyy"
+								placeholder="dd/mm/aaaa" maxlength="10"
+								value="@bind(vm.situacao.dataSituacao)" />
+						</vlayout>
+						<vlayout spacing="1px">
+							<label value="Descrição:"
+								style="font-weight:bold" />
+							<textbox rows="5"
+								value="@bind(vm.situacao.descricao)"
+								onChange="self.setValue(self.getValue().toUpperCase().trim());" />
+						</vlayout>
+					</vlayout>
+
+					<separator />
+					<div align="center">
+						<button tooltiptext="Fechar"
+							style="font-weight:bold" label="FECHAR"
+							iconSclass="fas fa-times-circle"
+							onClick="@command('abrirModalIncluirSituacao', visible=false)" />
+						<button tooltiptext="Incluir situação"
+							style="font-weight:bold" label="INCLUIR SITUAÇÃO"
+							iconSclass="fas fa-plus-circle"
+							onClick="@command('incluirSituacao')" />
+					</div>
+				</vbox>
+			</window>
+
+			<window id="modalAlterarObra" mode="modal" visible="false"
+				sclass="custom-window">
+				<vbox align="left">
+					<label value="Alterar dados da Obra"
+						sclass="custom-title" />
+					<vlayout spacing="1px">
+						<hlayout spacing="5px">
+							<label value="Contrato selecionado:" />
+							<label
+								value="@load(vm.obraServico.contrato.numeroAnoContratoStr)" />
+						</hlayout>
+						<tabbox>
+							<tabs>
+								<tab label="Controles" />
+								<tab label="Localização" />
+								<tab label="Profissionais" />
+								<tab label="Situação" />
+								<tab label="Medição" />
+							</tabs>
+							<tabpanels>
+								<tabpanel>
+									<hlayout spacing="15px">
+										<vlayout spacing="7px">
+											<vlayout spacing="1px">
+												<label
+													value="Bem público:" style="font-weight:bold" />
+												<textbox width="300px"
+													value="@bind(vm.obraServico.bemPublico)"
+													onChange="self.setValue(self.getValue().toUpperCase().trim());" />
+											</vlayout>
+											<vlayout spacing="1px">
+												<label
+													value="Valor inicial:" style="font-weight:bold" />
+												<doublebox width="250px"
+													value="@bind(vm.obraServico.valorInicial)" />
+											</vlayout>
+											<vlayout spacing="1px">
+												<label
+													value="Nº de ordem de serviço:" style="font-weight:bold" />
+												<textbox
+													value="@bind(vm.obraServico.nOrdemServico)" />
+											</vlayout>
+										</vlayout>
+										<vlayout spacing="7px">
+											<vlayout spacing="1px">
+												<label
+													value="Data início:" style="font-weight:bold" />
+												<datebox
+													format="dd/MM/yyyy" placeholder="dd/mm/aaaa" maxlength="10"
+													value="@bind(vm.obraServico.dataInicio)" />
+											</vlayout>
+											<vlayout spacing="1px">
+												<label value="Data fim:"
+													style="font-weight:bold" />
+												<datebox
+													format="dd/MM/yyyy" placeholder="dd/mm/aaaa" maxlength="10"
+													value="@bind(vm.obraServico.dataFim)" />
+											</vlayout>
+											<vlayout spacing="1px">
+												<label
+													value="Data de entrega:" style="font-weight:bold" />
+												<datebox
+													format="dd/MM/yyyy" placeholder="dd/mm/aaaa" maxlength="10"
+													value="@bind(vm.obraServico.dataEntrega)" />
+											</vlayout>
+										</vlayout>
+										<vlayout spacing="7px">
+											<vlayout spacing="1px">
+												<label
+													value="Setor beneficiado:" style="font-weight:bold" />
+												<combobox
+													model="@bind(vm.setores)"
+													selectedItem="@bind(vm.obraServico.setorBeneficiado)">
+													<template
+														name="model" var="setor">
+														<comboitem
+															label="@load(setor.descricao)" value="@load(setor)" />
+													</template>
+												</combobox>
+											</vlayout>
+											<vlayout spacing="1px">
+												<label
+													value="Tipo de obra:" style="font-weight:bold" />
+												<combobox
+													model="@bind(vm.tiposObra)"
+													selectedItem="@bind(vm.obraServico.tipoObra)">
+													<template
+														name="model" var="tipoObra">
+														<comboitem
+															label="@load(tipoObra.descricao)"
+															value="@load(tipoObra)" />
+													</template>
+												</combobox>
+											</vlayout>
+											<vlayout spacing="1px">
+												<label
+													value="Descrição:" style="font-weight:bold" />
+												<textbox width="250px"
+													rows="5" value="@bind(vm.obraServico.descricao)"
+													onChange="self.setValue(self.getValue().toUpperCase().trim());" />
+											</vlayout>
+										</vlayout>
+										<vlayout spacing="7px">
+											<vlayout spacing="1px">
+												<label value="Endereço:"
+													style="font-weight:bold" />
+												<textbox
+													value="@bind(vm.obraServico.endereco)"
+													onChange="self.setValue(self.getValue().toUpperCase().trim());" />
+											</vlayout>
+											<vlayout spacing="1px">
+												<label value="Bairro:"
+													style="font-weight:bold" />
+												<textbox
+													value="@bind(vm.obraServico.bairro)"
+													onChange="self.setValue(self.getValue().toUpperCase().trim());" />
+											</vlayout>
+											<vlayout spacing="1px">
+												<label value="CEP:"
+													style="font-weight:bold" />
+												<textbox
+													value="@bind(vm.obraServico.cep)"
+													onChange="self.setValue(self.getValue().toUpperCase().trim());" />
+											</vlayout>
+										</vlayout>
+									</hlayout>
+								</tabpanel>
+								<tabpanel>
+									<hlayout spacing="15px">
+										<button
+											label="Incluir localização"
+											onClick="@command('abrirModalIncluirLocalizacao', visible=true)" />
+										<grid
+											model="@load(vm.localizacoes)" width="600px" mold="paging"
+											pageSize="3"
+											emptyMessage="Nenhuma localização incluída nesta obra.">
+											<columns>
+												<column
+													label="Descrição" />
+												<column label="Latitude"
+													width="150px" align="center" />
+												<column
+													label="Longitude" width="150px" align="center" />
+											</columns>
+											<template name="model"
+												var="localizacao">
+												<row>
+													<label
+														value="@load(localizacao.descricao)" />
+													<label
+														value="@load(localizacao.latitude)" />
+													<label
+														value="@load(localizacao.longitude)" />
+												</row>
+											</template>
+										</grid>
+									</hlayout>
+								</tabpanel>
+								<tabpanel>
+									<hlayout spacing="15px">
+										<button
+											label="Incluir profissional"
+											onClick="@command('abrirModalIncluirProfissional', visible=true)" />
+										<grid
+											model="@load(vm.profissionaisObra)" width="600px"
+											mold="paging" pageSize="3"
+											emptyMessage="Nenhum profissional incluído nesta obra.">
+											<columns>
+												<column label="Nome" />
+												<column label="Tipo"
+													width="200px" align="center" />
+											</columns>
+											<template name="model"
+												var="profissionalObra">
+												<row>
+													<label
+														value="@load(profissionalObra.nomeProfissional)" />
+													<label
+														value="@load(profissionalObra.tipoProfissional.descricao)" />
+												</row>
+											</template>
+										</grid>
+									</hlayout>
+								</tabpanel>
+								<tabpanel>
+									<hlayout spacing="15px">
+										<button label="Incluir situação"
+											onClick="@command('abrirModalIncluirSituacao', visible=true)" />
+										<grid
+											model="@load(vm.situacoes)" width="600px" mold="paging"
+											pageSize="3"
+											emptyMessage="Nenhuma situação incluída nesta obra.">
+											<columns>
+												<column label="Tipo"
+													width="200px" />
+												<column
+													label="Data situação" align="center" width="150px" />
+												<column
+													label="Descrição" align="center" />
+											</columns>
+											<template name="model"
+												var="situacao">
+												<row>
+													<label
+														value="@load(situacao.tipoSituacao.descricao)" />
+													<label
+														value="@load(situacao.dataSituacaoStr)" />
+													<label
+														value="@load(situacao.descricao)" />
+												</row>
+											</template>
+										</grid>
+									</hlayout>
+								</tabpanel>
+								<tabpanel></tabpanel>
+							</tabpanels>
+						</tabbox>
+					</vlayout>
+
+					<separator />
+					<div align="center">
+						<button tooltiptext="Fechar"
+							style="font-weight:bold" label="FECHAR"
+							iconSclass="fas fa-times-circle"
+							onClick="@command('abrirModalAlterarObraServico', obra=null, visible=false)" />
+						<button tooltiptext="Salvar alterações"
+							style="font-weight:bold" label="SALVAR ALTERAÇÕES"
+							iconSclass="fas fa-check-circle"
+							onClick="@command('salvarAlteracoes')" />
+					</div>
+				</vbox>
+			</window>
+
+			<window id="modalExcluirObraServico" mode="modal"
+				visible="false">
+				<vbox align="center" style="padding:15px">
+					<label multiline="true"
+						style="font-weight:bold; color:#D80000" value="ATENÇÃO!" />
+					<label multiline="true"
+						value="O exclusão de uma obra/serviço é uma operação irreversível." />
+					<label multiline="true"
+						value="Confirma a exclusão?" />
+					<separator />
+					<hlayout>
+						<button label="Não"
+							onClick="@command('abrirModalExcluirObra', obra=null, visible=false)" />
+						<button label="Sim"
+							onClick="@command('excluirObraServico')" />
+					</hlayout>
+				</vbox>
+			</window>
+		</panelchildren>
+	</panel>
+</zk>

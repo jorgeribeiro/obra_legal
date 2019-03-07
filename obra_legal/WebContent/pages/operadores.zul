@@ -1,0 +1,163 @@
+<?page title="Obra Legal - TCE/MA - Operadores"?>
+<?link rel="shortcut icon" type="image/x-icon" href="/imagens/favicon.ico"?>
+<?init class="org.zkoss.zk.ui.util.Composition" arg0="/template.zul" ?>
+
+<zk>
+	<panel
+		viewModel="@id('vm') @init('br.gov.ma.tce.obralegal.pages.OperadoresVM')"
+		title="Operadores" border="normal" self="@define(conteudo)">
+		<panelchildren>
+			<vlayout>
+				<button label="Cadastrar novo operador"
+					onClick="@command('abrirModalCadastrarOperador', visible=true)"
+					iconSclass="fas fa-user-plus" />
+				<grid model="@load(vm.operadores)" mold="paging"
+					pageSize="10"
+					emptyMessage="Nenhum operador encontrado para o
+						mandato selecionado.">
+					<columns>
+						<column label="Nome" align="center" />
+						<column label="CPF" align="center" />
+						<column label="E-mail" align="center"
+							width="200px" />
+						<column label="Telefone" align="center"
+							width="200px" />
+						<column label="Status" align="center"
+							width="125px" />
+						<column label="Ações" align="center"
+							width="200px" />
+					</columns>
+					<template name="model" var="operador">
+						<row>
+							<label value="@load(operador.nome)" />
+							<label value="@load(operador.cpfStr)" />
+							<label value="@load(operador.email)" />
+							<label value="@load(operador.telefone)" />
+							<label
+								value="@load(operador.ativo ? 'Ativo' : 'Inativo')" />
+							<div align="left">
+								<button
+									label="Ativar/Desativar operador"
+									iconSclass="fas fa-user-check"
+									onClick="@command('ativarDesativarOperador', operador=operador)" />
+								<button label="Atualizar operador"
+									iconSclass="fas fa-edit"
+									onClick="@command('abrirModalAtualizarOperador', visible=true, operador=operador)" />
+							</div>
+						</row>
+					</template>
+				</grid>
+
+				<window id="modalCadastrarOperador" mode="modal"
+					visible="false" sclass="custom-window"
+					onOK="@command('validarPessoaFisica')">
+					<vbox align="left">
+						<label
+							value="Cadastro de operador do Módulo Jurisdicionado"
+							sclass="custom-title" />
+						<vlayout spacing="1px"
+							style="line-height:0px">
+							<label value="Nome:"
+								style="font-weight:bold" />
+							<label
+								visible="@load(not empty vm.operadorJurisdicionado.pessoa)"
+								value="@load(vm.operadorJurisdicionado.nome)" />
+							<label
+								visible="@load(empty vm.operadorJurisdicionado.pessoa)"
+								value="Informe o CPF do operador" />
+						</vlayout>
+						<vlayout spacing="1px">
+							<label value="CPF:"
+								style="font-weight:bold" />
+							<hlayout>
+								<textbox
+									value="@bind(vm.operadorJurisdicionado.pessoaCpf)" />
+								<button label="Buscar pessoa"
+									onClick="@command('validarPessoaFisica')" />
+							</hlayout>
+						</vlayout>
+						<vlayout spacing="1px">
+							<label value="E-mail:"
+								style="font-weight:bold" />
+							<textbox
+								disabled="@load(empty vm.pessoaFisica)"
+								value="@bind(vm.operadorJurisdicionado.email)" />
+						</vlayout>
+						<vlayout spacing="1px">
+							<label value="Senha:"
+								style="font-weight:bold" />
+							<textbox
+								disabled="@load(empty vm.pessoaFisica)" type="password"
+								value="@bind(vm.operadorJurisdicionado.senha)" />
+						</vlayout>
+						<vlayout spacing="1px">
+							<label value="Repita a senha:"
+								style="font-weight:bold" />
+							<textbox
+								disabled="@load(empty vm.pessoaFisica)" type="password"
+								value="@bind(vm.operadorJurisdicionado.repeteSenha)" />
+						</vlayout>
+						<vlayout spacing="1px">
+							<label value="Telefone:"
+								style="font-weight:bold" />
+							<textbox
+								disabled="@load(empty vm.pessoaFisica)"
+								value="@bind(vm.operadorJurisdicionado.telefone)" />
+						</vlayout>
+
+						<separator />
+						<div align="center">
+							<button tooltiptext="Fechar"
+								style="font-weight:bold" label="FECHAR"
+								iconSclass="fas fa-times-circle"
+								onClick="@command('abrirModalCadastrarOperador', visible=false)" />
+							<button tooltiptext="Cadastrar operador"
+								style="font-weight:bold" label="CADASTRAR OPERADOR"
+								iconSclass="fas fa-user-plus"
+								onClick="@command('cadastrarOperador')" />
+						</div>
+					</vbox>
+				</window>
+
+				<window id="modalAtualizarOperador" mode="modal"
+					visible="false" sclass="custom-window">
+					<vbox align="left">
+						<label value="Atualizar operador"
+							sclass="custom-title" />
+						<vlayout spacing="1px"
+							style="line-height:0px">
+							<label value="Nome:"
+								style="font-weight:bold" />
+							<label
+								value="@load(vm.operadorJurisdicionado.nome)" />
+						</vlayout>
+						<vlayout spacing="1px">
+							<label value="E-mail:"
+								style="font-weight:bold" />
+							<textbox
+								value="@bind(vm.operadorJurisdicionado.email)" />
+						</vlayout>
+						<vlayout spacing="1px">
+							<label value="Telefone:"
+								style="font-weight:bold" />
+							<textbox
+								value="@bind(vm.operadorJurisdicionado.telefone)" />
+						</vlayout>
+
+						<separator />
+						<div align="center">
+							<button tooltiptext="Fechar"
+								style="font-weight:bold" label="FECHAR"
+								iconSclass="fas fa-times-circle"
+								onClick="@command('abrirModalAtualizarOperador', visible=false, operador=null)" />
+							<button tooltiptext="Cadastrar operador"
+								style="font-weight:bold" label="ATUALIZAR OPERADOR"
+								iconSclass="fas fa-edit"
+								onClick="@command('atualizarOperador')" />
+						</div>
+					</vbox>
+				</window>
+			</vlayout>
+		</panelchildren>
+	</panel>
+</zk>

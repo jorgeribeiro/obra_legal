@@ -1,0 +1,222 @@
+package br.gov.ma.tce.obralegalfiscalizacao.pages;
+
+import java.util.Collection;
+
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+
+import org.zkoss.bind.annotation.AfterCompose;
+import org.zkoss.bind.annotation.BindingParam;
+import org.zkoss.bind.annotation.Command;
+import org.zkoss.bind.annotation.ContextParam;
+import org.zkoss.bind.annotation.ContextType;
+import org.zkoss.bind.annotation.Init;
+import org.zkoss.bind.annotation.NotifyChange;
+import org.zkoss.bind.annotation.Scope;
+import org.zkoss.bind.annotation.ScopeParam;
+import org.zkoss.zk.ui.Component;
+import org.zkoss.zk.ui.Executions;
+import org.zkoss.zk.ui.select.Selectors;
+import org.zkoss.zk.ui.select.annotation.Wire;
+import org.zkoss.zk.ui.util.Clients;
+import org.zkoss.zul.Combobox;
+import org.zkoss.zul.Window;
+
+import br.gov.ma.tce.obralegal.server.beans.usuariofiscalizacao.UsuarioFiscalizacao;
+import br.gov.ma.tce.obralegal.server.beans.usuariofiscalizacao.UsuarioFiscalizacaoFacadeBean;
+import br.gov.ma.tce.obralegal.server.exception.BusinessException;
+import br.gov.ma.tce.obralegal.server.util.HashUtil;
+import br.gov.ma.tce.seguranca.interno.server.beans.usuario.Usuario;
+import br.gov.ma.tce.seguranca.interno.server.beans.usuario.UsuarioFacadeBean;
+
+public class UsuariosVM {
+	private UsuarioFiscalizacao usuarioFiscalizacao, novoUsuarioFiscalizacao, usuarioFiscalizacaoSelecionado;
+
+	private Collection<UsuarioFiscalizacao> usuarios;
+
+	private UsuarioFiscalizacaoFacadeBean usuarioFiscalizacaoFacade;
+	private UsuarioFacadeBean usuarioFacade;
+
+	@Wire("#modalCadastrarUsuario")
+	private Window modalCadastrarUsuario;
+
+	@Wire("#modalCadastrarUsuario #comboStatus")
+	private Combobox comboStatus;
+
+	@Wire("#modalAlterarNivel")
+	private Window modalAlterarNivel;
+
+	public UsuariosVM() {
+		try {
+			InitialContext ctx = new InitialContext();
+			usuarioFiscalizacaoFacade = (UsuarioFiscalizacaoFacadeBean) ctx.lookup(UsuarioFiscalizacaoFacadeBean.URI);
+			usuarioFacade = (UsuarioFacadeBean) ctx.lookup(UsuarioFacadeBean.JNDI_OBRALEGAL);
+		} catch (NamingException e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Init
+	public void init(
+			@ScopeParam(scopes = Scope.SESSION, value = "usuarioFiscalizacao") UsuarioFiscalizacao usuarioFiscalizacao) {
+		// Usuário não tem acesso ao gerenciamento de usuários caso não seja admin
+		if (!usuarioFiscalizacao.getNivelUsuario().equals("1")) {
+			Executions.sendRedirect("/index.zul");
+		} else {
+			this.usuarioFiscalizacao = usuarioFiscalizacao;
+			usuarios = usuarioFiscalizacaoFacade.findAll();
+		}
+	}
+
+	@AfterCompose
+	public void afterCompose(@ContextParam(ContextType.VIEW) Component view) {
+		Selectors.wireComponents(view, this, false);
+	}
+
+	@Command
+	@NotifyChange(".")
+	public void abrirModalCadastrarUsuario(@BindingParam("visible") Boolean visible) {
+		try {
+			novoUsuarioFiscalizacao = new UsuarioFiscalizacao();
+			modalCadastrarUsuario.setVisible(visible);
+			// Correção de bug do ZK que mantém combobox selecionada após fechar modal
+			comboStatus.setSelectedItem(null);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Command
+	@NotifyChange(".")
+	public void buscarServidor() {
+		try {
+			if (novoUsuarioFiscalizacao.getServidorMatricula() == null) {
+				throw new BusinessException("Preencha a Matrícula para buscar o Servidor.");
+			}
+
+			Usuario usuario = usuarioFacade.findByMatricula(novoUsuarioFiscalizacao.getServidorMatricula());
+			if (usuario == null) {
+				throw new BusinessException("Servidor não encontrado.");
+			} else if (usuarioFiscalizacaoFacade
+					.findByMatricula(novoUsuarioFiscalizacao.getServidorMatricula()) != null) {
+				throw new BusinessException(
+						"Servidor já cadastrado no Módulo Fiscalização. Verifique a lista de usuários.");
+			} else {
+				novoUsuarioFiscalizacao.setUsuario(usuario);
+				Clients.showNotification("Servidor encontrado. Preencha as outras informações de usuário.",
+						Clients.NOTIFICATION_TYPE_INFO, null, null, 3000, true);
+			}
+		} catch (BusinessException e) {
+			Clients.showNotification(e.getMessage(), Clients.NOTIFICATION_TYPE_WARNING, null, null, 3000, true);
+		}
+	}
+
+	@Command
+	@NotifyChange(".")
+	public void cadastrarUsuario() {
+		try {
+			if (novoUsuarioFiscalizacao.getUsuario() == null) {
+				throw new BusinessException("Informe a Matrícula do Servidor para cadastrá-lo.");
+			} else if (novoUsuarioFiscalizacao.getNivelUsuario() == null || novoUsuarioFiscalizacao.getAtivo() == null
+					|| novoUsuarioFiscalizacao.getSenha() == null || novoUsuarioFiscalizacao.getRepeteSenha() == null) {
+				throw new BusinessException("Preencha todos os campos exibidos.");
+			} else if (!usuarioFiscalizacao.getSenha().equals(usuarioFiscalizacao.getRepeteSenha())) {
+				throw new BusinessException("As senhas informadas não coincidem.");
+			}
+
+			modalCadastrarUsuario.setVisible(false);
+			novoUsuarioFiscalizacao.setSenha(HashUtil.hashSenha(novoUsuarioFiscalizacao.getSenha()));
+			novoUsuarioFiscalizacao = usuarioFiscalizacaoFacade.include(novoUsuarioFiscalizacao);
+			usuarios.add(novoUsuarioFiscalizacao);
+			Clients.showNotification("Usuário cadastrado com sucesso!", Clients.NOTIFICATION_TYPE_INFO, null, null,
+					3000, true);
+		} catch (BusinessException e) {
+			Clients.showNotification(e.getMessage(), Clients.NOTIFICATION_TYPE_WARNING, null, null, 3000, true);
+		}
+	}
+
+	@Command
+	@NotifyChange(".")
+	public void ativarDesativarUsuario(@BindingParam("usuario") UsuarioFiscalizacao usuario) {
+		try {
+			if (this.usuarioFiscalizacao.getUsuarioFiscalizacaoId() == usuario.getUsuarioFiscalizacaoId()) {
+				throw new BusinessException(
+						"Não é possível alterar seu próprio status. Entre em contato com a SUTEC para solicitar essa alteração.");
+			} else if (usuario.getNivelUsuario().equals("1")) {
+				throw new BusinessException("Não é possível desativar usuários de tipo Administrador.");
+			}
+
+			usuario.setAtivo(!usuario.getAtivo());
+			usuarioFiscalizacaoFacade.update(usuario);
+		} catch (BusinessException e) {
+			Clients.showNotification(e.getMessage(), Clients.NOTIFICATION_TYPE_WARNING, null, null, 4000, true);
+		}
+	}
+
+	@Command
+	@NotifyChange(".")
+	public void abrirModalAlterarNivel(@BindingParam("visible") Boolean visible,
+			@BindingParam("usuario") UsuarioFiscalizacao usuario) {
+		try {
+			if (!visible) {
+				usuarios = usuarioFiscalizacaoFacade.findAll();
+			} else {
+				if (this.usuarioFiscalizacao.getUsuarioFiscalizacaoId() == usuario.getUsuarioFiscalizacaoId()) {
+					throw new BusinessException(
+							"Não é possível alterar seu próprio nível de usuário. Entre em contato com a SUTEC para solicitar essa alteração.");
+				}
+			}
+
+			usuarioFiscalizacaoSelecionado = usuario;
+			modalAlterarNivel.setVisible(visible);
+		} catch (BusinessException e) {
+			Clients.showNotification(e.getMessage(), Clients.NOTIFICATION_TYPE_WARNING, null, null, 4000, true);
+		}
+	}
+
+	@Command
+	@NotifyChange(".")
+	public void salvarAlteracao() {
+		try {
+			modalAlterarNivel.setVisible(false);
+			usuarioFiscalizacaoFacade.update(usuarioFiscalizacaoSelecionado);
+			Clients.showNotification("Nível alterado com sucesso!", Clients.NOTIFICATION_TYPE_INFO, null, null, 3000,
+					true);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public UsuarioFiscalizacao getUsuarioFiscalizacao() {
+		return usuarioFiscalizacao;
+	}
+
+	public void setUsuarioFiscalizacao(UsuarioFiscalizacao usuarioFiscalizacao) {
+		this.usuarioFiscalizacao = usuarioFiscalizacao;
+	}
+
+	public UsuarioFiscalizacao getNovoUsuarioFiscalizacao() {
+		return novoUsuarioFiscalizacao;
+	}
+
+	public void setNovoUsuarioFiscalizacao(UsuarioFiscalizacao novoUsuarioFiscalizacao) {
+		this.novoUsuarioFiscalizacao = novoUsuarioFiscalizacao;
+	}
+
+	public UsuarioFiscalizacao getUsuarioFiscalizacaoSelecionado() {
+		return usuarioFiscalizacaoSelecionado;
+	}
+
+	public void setUsuarioFiscalizacaoSelecionado(UsuarioFiscalizacao usuarioFiscalizacaoSelecionado) {
+		this.usuarioFiscalizacaoSelecionado = usuarioFiscalizacaoSelecionado;
+	}
+
+	public Collection<UsuarioFiscalizacao> getUsuarios() {
+		return usuarios;
+	}
+
+	public void setUsuarios(Collection<UsuarioFiscalizacao> usuarios) {
+		this.usuarios = usuarios;
+	}
+
+}

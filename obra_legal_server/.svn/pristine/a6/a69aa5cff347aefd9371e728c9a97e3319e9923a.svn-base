@@ -1,0 +1,102 @@
+package br.gov.ma.tce.obralegal.server.beans.obraservico;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+
+import javax.ejb.Stateless;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+
+import org.joda.time.LocalDate;
+
+import br.gov.ma.tce.obralegal.server.tipoexecucao.TipoExecucao;
+import br.gov.ma.tce.obralegal.server.tipoobraservico.TipoObraServico;
+
+@Stateless
+public class ObraServicoFacadeBean {
+	public static final String URI = "java:global/obra_legal_ear/obra_legal_server/ObraServicoFacadeBean!br.gov.ma.tce.obralegal.server.beans.obraservico.ObraServicoFacadeBean";
+
+	@PersistenceContext(unitName = "obra_legal")
+	public EntityManager manager;
+
+	public ObraServico include(ObraServico obraServico) {
+		manager.persist(obraServico);
+		return obraServico;
+	}
+
+	public ObraServico update(ObraServico obraServico) {
+		manager.merge(obraServico);
+		return obraServico;
+	}
+
+	public void delete(int obraServicoId) {
+		ObraServico obraServico = findByPrimaryKey(obraServicoId);
+		manager.remove(obraServico);
+	}
+
+	public ObraServico findByPrimaryKey(Integer obraServicoId) {
+		ObraServico obraServico = manager.find(ObraServico.class, obraServicoId);
+		return obraServico;
+	}
+
+	public Collection<ObraServico> findAll() {
+		Query q = manager.createQuery("select s from " + ObraServico.NAME + " s order by s.obraServicoId");
+		Collection<ObraServico> obraServicos = new ArrayList<ObraServico>();
+		for (Object o : q.getResultList()) {
+			obraServicos.add((ObraServico) o);
+		}
+		return obraServicos;
+	}
+
+	public Collection<ObraServico> findObrasServicosByTipoExecucaoAndTipoObraServicoAndMandato(
+			TipoExecucao tipoExecucao, TipoObraServico tipoObraServico, Integer mandatoId) {
+		Query q = manager.createQuery("select s from " + ObraServico.NAME
+				+ " s where s.tipoExecucao=:arg0 and s.tipoObraServico=:arg1 and s.mandatoId=:arg2 order by s.dataInclusao")
+				.setParameter("arg0", tipoExecucao).setParameter("arg1", tipoObraServico)
+				.setParameter("arg2", mandatoId);
+		Collection<ObraServico> obraServicos = new ArrayList<ObraServico>();
+		for (Object o : q.getResultList()) {
+			obraServicos.add((ObraServico) o);
+		}
+		return obraServicos;
+	}
+
+	public Collection<ObraServico> findObrasServicosByMandato(Integer mandatoId) {
+		Query q = manager
+				.createQuery("select s from " + ObraServico.NAME + " s where s.mandatoId=:arg0 order by s.dataInclusao")
+				.setParameter("arg0", mandatoId);
+		Collection<ObraServico> obraServicos = new ArrayList<ObraServico>();
+		for (Object o : q.getResultList()) {
+			obraServicos.add((ObraServico) o);
+		}
+		return obraServicos;
+	}
+
+	public Collection<ObraServico> findObrasServicosByEnteAndTipoExecucao(Integer enteId, TipoExecucao tipoExecucao) {
+		Query q = manager
+				.createQuery("select s from " + ObraServico.NAME
+						+ " s where s.enteId=:arg0 and s.tipoExecucao=:arg1 order by s.dataInclusao")
+				.setParameter("arg0", enteId).setParameter("arg1", tipoExecucao);
+		Collection<ObraServico> obraServicos = new ArrayList<ObraServico>();
+		for (Object o : q.getResultList()) {
+			obraServicos.add((ObraServico) o);
+		}
+		return obraServicos;
+	}
+
+	public Collection<ObraServico> findNovasObrasServicos(Integer quantidadeDias) {
+		Date diaInicio = LocalDate.fromDateFields(new Date()).minusDays(quantidadeDias).toDate();
+		Query q = manager
+				.createQuery("select s from " + ObraServico.NAME
+						+ " s where s.dataInclusao between :arg0 and current_timestamp order by s.dataInclusao")
+				.setParameter("arg0", diaInicio);
+		Collection<ObraServico> obraServicos = new ArrayList<ObraServico>();
+		for (Object o : q.getResultList()) {
+			obraServicos.add((ObraServico) o);
+		}
+		return obraServicos;
+	}
+
+}

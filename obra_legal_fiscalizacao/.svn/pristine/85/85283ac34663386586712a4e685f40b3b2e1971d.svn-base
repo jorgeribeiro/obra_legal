@@ -1,0 +1,115 @@
+package br.gov.ma.tce.obralegalfiscalizacao.pages;
+
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+
+import org.zkoss.bind.annotation.AfterCompose;
+import org.zkoss.bind.annotation.Command;
+import org.zkoss.bind.annotation.ContextParam;
+import org.zkoss.bind.annotation.ContextType;
+import org.zkoss.bind.annotation.Init;
+import org.zkoss.bind.annotation.NotifyChange;
+import org.zkoss.bind.annotation.Scope;
+import org.zkoss.bind.annotation.ScopeParam;
+import org.zkoss.zk.ui.Component;
+import org.zkoss.zk.ui.Executions;
+import org.zkoss.zk.ui.Sessions;
+import org.zkoss.zk.ui.select.Selectors;
+import org.zkoss.zk.ui.util.Clients;
+
+import br.gov.ma.tce.obralegal.server.beans.usuariofiscalizacao.UsuarioFiscalizacao;
+import br.gov.ma.tce.obralegal.server.beans.usuariofiscalizacao.UsuarioFiscalizacaoFacadeBean;
+import br.gov.ma.tce.obralegal.server.exception.BusinessException;
+import br.gov.ma.tce.obralegal.server.util.HashUtil;
+
+public class LoginVM {
+	private Integer matricula = 99911673;
+	private String senha = "jorge190493";
+
+	private UsuarioFiscalizacao usuarioFiscalizacao;
+
+	private UsuarioFiscalizacaoFacadeBean usuarioFiscalizacaoFacade;
+
+	public LoginVM() {
+		try {
+			InitialContext ctx = new InitialContext();
+			usuarioFiscalizacaoFacade = (UsuarioFiscalizacaoFacadeBean) ctx.lookup(UsuarioFiscalizacaoFacadeBean.URI);
+		} catch (NamingException e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Init
+	public void init(
+			@ScopeParam(scopes = Scope.SESSION, value = "usuarioFiscalizacao") UsuarioFiscalizacao usuarioFiscalizacao) {
+		// Variável para menubar.zul que também usa essa VM
+		if (usuarioFiscalizacao != null) {
+			this.usuarioFiscalizacao = usuarioFiscalizacao;
+		}
+	}
+
+	@AfterCompose
+	public void afterCompose(@ContextParam(ContextType.VIEW) Component view) {
+		Selectors.wireComponents(view, this, false);
+	}
+
+	@Command
+	@NotifyChange(".")
+	public void login() {
+		try {
+			if (matricula == null || (senha == null || senha.length() == 0)) {
+				throw new BusinessException("Insira matrícula e senha para entrar no sistema.");
+			}
+
+			usuarioFiscalizacao = usuarioFiscalizacaoFacade.findByMatricula(matricula);
+			if (usuarioFiscalizacao == null || !HashUtil.rehashSenha(senha, usuarioFiscalizacao.getSenha())) {
+				throw new BusinessException("Matrícula ou senha inválidos.");
+			} else if (!usuarioFiscalizacao.getAtivo()) {
+				throw new BusinessException(
+						"Conta de usuário desativada. Entre em contato com seu gestor para mais informações.");
+			} else {
+				// Registra sessão e redireciona para index
+				Sessions.getCurrent().setAttribute("usuarioFiscalizacao", usuarioFiscalizacao);
+				Executions.sendRedirect("/index.zul");
+			}
+		} catch (BusinessException e) {
+			Clients.showNotification(e.getMessage(), Clients.NOTIFICATION_TYPE_WARNING, null, null, 3800, true);
+		}
+	}
+
+	@Command
+	@NotifyChange(".")
+	public void sair() {
+		try {
+			Sessions.getCurrent().invalidate();
+			Executions.sendRedirect("/login.zul");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public Integer getMatricula() {
+		return matricula;
+	}
+
+	public void setMatricula(Integer login) {
+		this.matricula = login;
+	}
+
+	public String getSenha() {
+		return senha;
+	}
+
+	public void setSenha(String senha) {
+		this.senha = senha;
+	}
+
+	public UsuarioFiscalizacao getUsuarioFiscalizacao() {
+		return usuarioFiscalizacao;
+	}
+
+	public void setUsuarioFiscalizacao(UsuarioFiscalizacao usuarioFiscalizacao) {
+		this.usuarioFiscalizacao = usuarioFiscalizacao;
+	}
+
+}

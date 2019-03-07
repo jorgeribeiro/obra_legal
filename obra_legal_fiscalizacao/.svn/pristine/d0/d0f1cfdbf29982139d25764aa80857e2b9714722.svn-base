@@ -1,0 +1,28 @@
+<zk>
+	<menubar
+		viewModel="@id('vm') @init('br.gov.ma.tce.obralegalfiscalizacao.pages.LoginVM')">
+		<menuitem label="OBRA LEGAL"
+			onClick='Executions.sendRedirect("/index.zul")' />
+		<menu label="Fiscalizar obras">
+			<menupopup>
+				<menuitem label="Obras por execução indireta"
+					onClick='Executions.sendRedirect("/pages/execucaoindireta.zul")' />
+				<menuitem label="Obras por execução direta"
+					onClick='Executions.sendRedirect("/pages/execucaodireta.zul")' />
+			</menupopup>
+		</menu>
+		<menuitem label="Usuários"
+			onClick='Executions.sendRedirect("/pages/usuarios.zul")'
+			visible="@load(vm.usuarioFiscalizacao.nivelUsuario eq 1)" />
+		<menu label="Solicitações">
+			<menupopup>
+				<menuitem label="Pendentes"
+					onClick='Executions.sendRedirect("/pages/solicitacoespendentes.zul")' />
+				<menuitem label="Revisadas"
+					onClick='Executions.sendRedirect("/pages/solicitacoesrevisadas.zul")' />
+			</menupopup>
+		</menu>
+		<menuitem label="Sair" sclass="right-menu"
+			onClick="@command('sair')" />
+	</menubar>
+</zk>

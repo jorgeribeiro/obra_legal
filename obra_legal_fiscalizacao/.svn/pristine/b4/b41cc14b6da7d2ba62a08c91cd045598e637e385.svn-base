@@ -1,0 +1,329 @@
+<?page title="Obra Legal - TCE/MA - Fiscalização"?>
+<?link rel="shortcut icon" type="image/x-icon" href="/imagens/favicon.ico"?>
+<?init class="org.zkoss.zk.ui.util.Composition" arg0="/template.zul" ?>
+
+<zk>
+	<vlayout
+		viewModel="@id('vm') @init('br.gov.ma.tce.obralegalfiscalizacao.pages.FiscalizacaoVM')"
+		self="@define(conteudo)" style="padding:20px">
+		<button label="Voltar" iconSclass="fas fa-arrow-circle-left"
+			href="execucaoindireta.zul" />
+		<vlayout spacing="1px">
+			<label value="Fiscalização" sclass="custom-label-2" />
+			<panel>
+				<panelchildren>
+					<hlayout spacing="20px">
+						<hlayout spacing="5px">
+							<label value="Código:"
+								sclass="custom-label-4" />
+							<label
+								value="@load(vm.obraServico.obraServicoId)" />
+						</hlayout>
+						<hlayout spacing="5px">
+							<label value="Dias para alterar/excluir:"
+								sclass="custom-label-4" />
+							<label
+								value="@load(vm.obraServico.diasAlterarExcluir)" />
+						</hlayout>
+						<hlayout spacing="5px">
+							<label value="Unidade:"
+								sclass="custom-label-4" />
+							<label
+								value="@load(vm.obraServico.unidadeStr)" />
+						</hlayout>
+					</hlayout>
+					<separator />
+					<hlayout spacing="20px">
+						<hlayout spacing="5px">
+							<label value="Ente:"
+								sclass="custom-label-4" />
+							<label
+								value="@load(vm.obraServico.enteStr)" />
+						</hlayout>
+						<hlayout spacing="5px">
+							<label value="Data inclusão:"
+								sclass="custom-label-4" />
+							<label
+								value="@load(vm.obraServico.dataInclusaoStr)" />
+						</hlayout>
+						<hlayout spacing="5px">
+							<label value="Contrato Nº/Ano-Obra:"
+								sclass="custom-label-4" />
+							<label
+								value="@load(vm.obraServico.contrato.numeroAnoContratoStr)" />
+							<button label="Visualizar contrato"
+								iconSclass="fas fa-external-link-alt" />
+						</hlayout>
+					</hlayout>
+				</panelchildren>
+			</panel>
+
+			<div
+				style="padding-left:20px;padding-right:20px;padding-bottom:20px">
+				<label value="Controles" sclass="custom-label-3" />
+				<hlayout spacing="20px">
+					<hlayout spacing="5px">
+						<label value="Bem público:"
+							sclass="custom-label-4" />
+						<label
+							value="@load(vm.obraServico.bemPublicoStr)" />
+					</hlayout>
+					<hlayout spacing="5px">
+						<label value="Valor inicial:"
+							sclass="custom-label-4" />
+						<label
+							value="@load(vm.obraServico.valorInicialStr)" />
+					</hlayout>
+					<hlayout spacing="5px">
+						<label value="Nº de ordem de serviço:"
+							sclass="custom-label-4" />
+						<label
+							value="@load(vm.obraServico.nOrdemServicoStr)" />
+					</hlayout>
+				</hlayout>
+				<hlayout spacing="20px">
+					<hlayout spacing="5px">
+						<label value="Datas:" sclass="custom-label-4" />
+						<label value="@load(vm.obraServico.datasStr)" />
+					</hlayout>
+				</hlayout>
+				<hlayout spacing="20px">
+					<hlayout spacing="5px">
+						<label value="Setor beneficiado:"
+							sclass="custom-label-4" />
+						<label
+							value="@load(vm.obraServico.setorBeneficiadoStr)" />
+					</hlayout>
+					<hlayout spacing="5px">
+						<label value="Tipo de obra:"
+							sclass="custom-label-4" />
+						<label
+							value="@load(vm.obraServico.tipoObraStr)" />
+					</hlayout>
+					<hlayout spacing="5px">
+						<label value="Descrição:"
+							sclass="custom-label-4" />
+						<label
+							value="@load(vm.obraServico.descricaoStr)" />
+					</hlayout>
+				</hlayout>
+				<hlayout spacing="20px">
+					<hlayout spacing="5px">
+						<label value="Endereço:"
+							sclass="custom-label-4" />
+						<label
+							value="@load(vm.obraServico.enderecoStr)" />
+					</hlayout>
+				</hlayout>
+
+				<separator />
+				<button iconSclass="fas fa-info"
+					onClick="@command('abrirModalPendenciasControles', visible=true)"
+					label="Informar pendências em Controles" />
+			</div>
+
+			<div
+				style="padding-left:20px;padding-right:20px;padding-bottom:20px">
+				<separator bar="true" />
+				<label value="Localização" sclass="custom-label-3" />
+				<grid model="@load(vm.localizacoes)" width="600px"
+					mold="paging" pageSize="3"
+					emptyMessage="Nenhuma localização incluída nesta obra.">
+					<columns>
+						<column label="Descrição" />
+						<column label="Latitude" width="150px"
+							align="center" />
+						<column label="Longitude" width="150px"
+							align="center" />
+					</columns>
+					<template name="model" var="localizacao">
+						<row>
+							<label value="@load(localizacao.descricao)" />
+							<label value="@load(localizacao.latitude)" />
+							<label value="@load(localizacao.longitude)" />
+						</row>
+					</template>
+				</grid>
+
+				<separator />
+				<button iconSclass="fas fa-info"
+					onClick="@command('abrirModalPendenciasLocalizacao', visible=true)"
+					label="Informar pendências em Localização" />
+			</div>
+
+			<div
+				style="padding-left:20px;padding-right:20px;padding-bottom:20px">
+				<separator bar="true" />
+				<label value="Profissionais" sclass="custom-label-3" />
+				<grid model="@load(vm.profissionaisObra)" width="600px"
+					mold="paging" pageSize="3"
+					emptyMessage="Nenhum profissional incluído nesta obra.">
+					<columns>
+						<column label="Nome" />
+						<column label="Tipo" width="200px"
+							align="center" />
+					</columns>
+					<template name="model" var="profissionalObra">
+						<row>
+							<label
+								value="@load(profissionalObra.nomeProfissional)" />
+							<label
+								value="@load(profissionalObra.tipoProfissional.descricao)" />
+						</row>
+					</template>
+				</grid>
+
+				<separator />
+				<button iconSclass="fas fa-info"
+					onClick="@command('abrirModalPendenciasProfissionais', visible=true)"
+					label="Informar pendências em Profissionais" />
+			</div>
+
+			<div
+				style="padding-left:20px;padding-right:20px;padding-bottom:20px">
+				<separator bar="true" />
+				<label value="Situação" sclass="custom-label-3" />
+				<grid model="@load(vm.situacoes)" width="600px"
+					mold="paging" pageSize="3"
+					emptyMessage="Nenhuma situação incluída nesta obra.">
+					<columns>
+						<column label="Tipo" width="200px" />
+						<column label="Data situação" align="center"
+							width="150px" />
+						<column label="Descrição" align="center" />
+					</columns>
+					<template name="model" var="situacao">
+						<row>
+							<label
+								value="@load(situacao.tipoSituacao.descricao)" />
+							<label
+								value="@load(situacao.dataSituacaoStr)" />
+							<label value="@load(situacao.descricao)" />
+						</row>
+					</template>
+				</grid>
+
+				<separator />
+				<button iconSclass="fas fa-info"
+					onClick="@command('abrirModalPendenciasSituacao', visible=true)"
+					label="Informar pendências em Situação" />
+			</div>			
+		</vlayout>
+
+		<window id="modalPendenciasControles" mode="modal"
+			visible="false" sclass="custom-window" width="600px">
+			<vbox align="left">
+				<label value="Informar pendências em Controles"
+					sclass="custom-title" />
+				<hlayout>
+					<label hflex="1"
+						value="Descreva detalhadamente as pendências encontradas na seção de Controles, 
+					apontando quais campos precisam ser corrigidos:" />
+					<textbox
+						value="@bind(vm.pendenciaControle.descricao)"
+						onChange="self.setValue(self.getValue().toUpperCase().trim());"
+						placeholder="Descreva a(s) pendência(s)" width="270px" rows="5" />
+				</hlayout>
+
+				<separator />
+				<div align="center">
+					<button tooltiptext="Fechar"
+						style="font-weight:bold" label="FECHAR"
+						iconSclass="fas fa-times-circle"
+						onClick="@command('abrirModalPendenciasControles', visible=false)" />
+					<button tooltiptext="Informar pendências"
+						style="font-weight:bold" label="INFORMAR PENDÊNCIAS"
+						iconSclass="fas fa-info-circle"
+						onClick="@command('informarPendencias', pendencia=vm.pendenciaControle)" />
+				</div>
+			</vbox>
+		</window>
+
+		<window id="modalPendenciasLocalizacao" mode="modal"
+			visible="false" sclass="custom-window" width="600px">
+			<vbox align="left">
+				<label value="Informar pendências em Localização"
+					sclass="custom-title" />
+				<hlayout>
+					<label hflex="1"
+						value="Descreva detalhadamente as pendências encontradas na seção de Localização, 
+					apontando quais campos precisam ser corrigidos:" />
+					<textbox
+						value="@bind(vm.pendenciaLocalizacao.descricao)"
+						onChange="self.setValue(self.getValue().toUpperCase().trim());"
+						placeholder="Descreva a(s) pendência(s)" width="270px" rows="5" />
+				</hlayout>
+
+				<separator />
+				<div align="center">
+					<button tooltiptext="Fechar"
+						style="font-weight:bold" label="FECHAR"
+						iconSclass="fas fa-times-circle"
+						onClick="@command('abrirModalPendenciasLocalizacao', visible=false)" />
+					<button tooltiptext="Informar pendências"
+						style="font-weight:bold" label="INFORMAR PENDÊNCIAS"
+						iconSclass="fas fa-info-circle"
+						onClick="@command('informarPendencias', pendencia=vm.pendenciaLocalizacao)" />
+				</div>
+			</vbox>
+		</window>
+
+		<window id="modalPendenciasProfissionais" mode="modal"
+			visible="false" sclass="custom-window" width="600px">
+			<vbox align="left">
+				<label value="Informar pendências em Profissionais"
+					sclass="custom-title" />
+				<hlayout>
+					<label hflex="1"
+						value="Descreva detalhadamente as pendências encontradas na seção de Profissionais, 
+					apontando quais campos precisam ser corrigidos:" />
+					<textbox
+						value="@bind(vm.pendenciaProfissionais.descricao)"
+						onChange="self.setValue(self.getValue().toUpperCase().trim());"
+						placeholder="Descreva a(s) pendência(s)" width="270px" rows="5" />
+				</hlayout>
+
+				<separator />
+				<div align="center">
+					<button tooltiptext="Fechar"
+						style="font-weight:bold" label="FECHAR"
+						iconSclass="fas fa-times-circle"
+						onClick="@command('abrirModalPendenciasProfissionais', visible=false)" />
+					<button tooltiptext="Informar pendências"
+						style="font-weight:bold" label="INFORMAR PENDÊNCIAS"
+						iconSclass="fas fa-info-circle"
+						onClick="@command('informarPendencias', pendencia=vm.pendenciaProfissionais)" />
+				</div>
+			</vbox>
+		</window>
+
+		<window id="modalPendenciasSituação" mode="modal"
+			visible="false" sclass="custom-window" width="600px">
+			<vbox align="left">
+				<label value="Informar pendências em Situação"
+					sclass="custom-title" />
+				<hlayout>
+					<label hflex="1"
+						value="Descreva detalhadamente as pendências encontradas na seção de Situação, 
+					apontando quais campos precisam ser corrigidos:" />
+					<textbox
+						value="@bind(vm.pendenciaSituacao.descricao)"
+						onChange="self.setValue(self.getValue().toUpperCase().trim());"
+						placeholder="Descreva a(s) pendência(s)" width="270px" rows="5" />
+				</hlayout>
+
+				<separator />
+				<div align="center">
+					<button tooltiptext="Fechar"
+						style="font-weight:bold" label="FECHAR"
+						iconSclass="fas fa-times-circle"
+						onClick="@command('abrirModalPendenciasSituacao', visible=false)" />
+					<button tooltiptext="Informar pendências"
+						style="font-weight:bold" label="INFORMAR PENDÊNCIAS"
+						iconSclass="fas fa-info-circle"
+						onClick="@command('informarPendencias', pendencia=vm.pendenciaSituacao)" />
+				</div>
+			</vbox>
+		</window>
+	</vlayout>
+</zk>

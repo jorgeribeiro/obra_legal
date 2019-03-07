@@ -1,0 +1,97 @@
+<?page title="Obra Legal (Módulo Jurisdicionado) - TCE/MA"?>
+<?link rel="shortcut icon" type="image/x-icon" href="/imagens/favicon.ico"?>
+<?init class="org.zkoss.zk.ui.util.Composition" arg0="/template.zul" ?>
+
+<zk>
+	<panel
+		viewModel="@id('vm') @init('br.gov.ma.tce.obralegal.pages.IndexVM')"
+		title="Início" border="normal" self="@define(conteudo)">
+		<panelchildren>
+			<vlayout
+				visible="@load(not empty vm.usuarioObraLegal.mandatoId)">
+				<panel>
+					<panelchildren>
+						<vlayout spacing="1px">
+							<label
+								value="Obra Legal - TCE/MA - Módulo JURISDICIONADO"
+								sclass="custom-label-1" />
+							<hlayout>
+								<label value="Bem vindo, " />
+								<label
+									value="@load(vm.usuarioObraLegal.nomeUsuario)" />
+							</hlayout>
+							<label
+								value="@load(vm.usuarioObraLegal.mandatoStr)" />
+							<separator />
+							<button label="Selecionar outro mandato"
+								iconSclass="fas fa-exchange-alt"
+								onClick="@command('selecionarOutroMandato')"
+								visible="@load(empty vm.usuarioObraLegal.operadorJurisdicionado)" />
+						</vlayout>
+					</panelchildren>
+				</panel>
+				<tabbox>
+					<tabs>
+						<tab label="Mensagens"
+							iconSclass="fas fa-envelope" />
+						<tab label="Prazos"
+							iconSclass="fas fa-calendar" />
+					</tabs>
+					<tabpanels>
+						<tabpanel>Mensagens</tabpanel>
+						<tabpanel>Prazos</tabpanel>
+					</tabpanels>
+				</tabbox>
+			</vlayout>
+
+			<window id="modalSelecionaMandato" mode="modal"
+				sclass="custom-window" visible="false">
+				<vbox align="left">
+					<label value="Seleção de mandato"
+						sclass="custom-title" />
+					<label
+						value="Selecione o mandato no qual deseja acessar o sistema:" />
+					<combobox id="comboEntes" placeholder="Ente"
+						onSelect="@command('carregarMandatosPorEnte')"
+						selectedItem="@bind(vm.enteSelecionado)"
+						model="@load(vm.entesMandatos)">
+						<template name="model" var="ente">
+							<comboitem label="@load(ente.nome)"
+								value="@load(ente)" />
+						</template>
+					</combobox>
+					<grid model="@load(vm.mandatosPorEnte)"
+						mold="paging" width="900px" pageSize="5"
+						emptyMessage="Selecione um ente para visualizar os mandatos.">
+						<columns>
+							<column label="Unidade" width="300px" />
+							<column label="Responsabilidade"
+								width="300px" align="center" />
+							<column label="Data início" width="140px"
+								align="center" />
+							<column label="Selecionar" align="center" />
+						</columns>
+						<template name="model" var="mandato">
+							<row>
+								<label
+									value="@load(mandato.nomeUnidade)" />
+								<label
+									value="@load(mandato.nomeTipoResponsavel)" />
+								<label
+									value="@load(mandato.dataInicioStr)" />
+								<button iconSclass="fas fa-check-circle"
+									onClick="@command('selecionaMandato', mandato=mandato)" />
+							</row>
+						</template>
+					</grid>
+					<div align="center"
+						visible="@load(not empty vm.usuarioObraLegal.mandatoId)">
+						<button label="Fechar"
+							iconSclass="fas fa-times-circle"
+							onClick="@command('abrirModalSelecionaMandato', visible=false)" />
+					</div>
+				</vbox>
+			</window>
+		</panelchildren>
+	</panel>
+</zk>

@@ -1,0 +1,115 @@
+<?page title="Obra Legal (Módulo Fiscalização) - TCE/MA"?>
+<?link rel="shortcut icon" type="image/x-icon" href="/imagens/favicon.ico"?>
+<?init class="org.zkoss.zk.ui.util.Composition" arg0="/template.zul" ?>
+
+<zk>
+	<panel
+		viewModel="@id('vm') @init('br.gov.ma.tce.obralegalfiscalizacao.pages.IndexVM')"
+		title="Início" border="normal" self="@define(conteudo)">
+		<panelchildren>
+			<vlayout>
+				<panel>
+					<panelchildren>
+						<vlayout spacing="1px">
+							<label
+								value="Obra Legal - TCE/MA - Módulo FISCALIZAÇÃO"
+								sclass="custom-label-1" />
+							<hlayout>
+								<label value="Bem vindo, " />
+								<label
+									value="@load(vm.usuario.nomeMatricula)" />
+							</hlayout>
+							<label
+								value="@load(vm.usuario.servidor.cargoEfetivo)" />
+						</vlayout>
+					</panelchildren>
+				</panel>
+				<tabbox>
+					<tabs>
+						<tab label="Novas obras"
+							iconSclass="fas fa-building" />
+						<tab label="Novas solicitações"
+							iconSclass="fas fa-tasks" />
+					</tabs>
+					<tabpanels>
+						<tabpanel>
+							<label
+								value="Obras inseridas nos últimos 60 dias:" />
+							<grid model="@load(vm.novasObras)"
+								mold="paging" pageSize="5"
+								emptyMessage="Nenhuma nova obra encontrada.">
+								<columns>
+									<column label="Cód." align="center"
+										width="60px" />
+									<column label="Bem público"
+										align="center" />
+									<column label="Unidade"
+										align="center" />
+									<column label="Ente" align="center" />
+									<column label="Tipo de execução"
+										align="center" />
+									<column label="Data inclusão"
+										align="center" width="125px" />
+								</columns>
+								<template name="model" var="obra">
+									<row>
+										<label
+											value="@load(obra.obraServicoId)" />
+										<label
+											value="@load(obra.bemPublicoStr)" />
+										<label
+											value="@load(obra.unidadeStr)" />
+										<label
+											value="@load(obra.enteStr)" />
+										<label
+											value="@load(obra.tipoExecucao.descricao)" />
+										<label
+											value="@load(obra.dataInclusaoStr)" />
+									</row>
+								</template>
+							</grid>
+						</tabpanel>
+						<tabpanel>
+							<label
+								value="Solicitações feitas nos últimos 60 dias:" />
+							<grid model="@load(vm.novasSolicitacoes)"
+								mold="paging" pageSize="5"
+								emptyMessage="Nenhuma nova solicitação encontrada.">
+								<columns>
+									<column label="Cód." align="center"
+										width="60px" />
+									<column label="Bem público"
+										align="center" />
+									<column label="Unidade"
+										align="center" />
+									<column label="Ente" align="center" />
+									<column label="Data da solicitação"
+										align="center" />
+									<column label="Dias solicitados"
+										align="center" width="125px" />
+								</columns>
+								<template name="model"
+									var="solicitacao">
+									<row>
+										<label
+											value="@load(solicitacao.obraServico.obraServicoId)" />
+										<label
+											value="@load(solicitacao.obraServico.bemPublicoStr)" />
+										<label
+											value="@load(solicitacao.obraServico.unidadeStr)" />
+										<label
+											value="@load(solicitacao.obraServico.enteStr)" />
+										<label
+											value="@load(solicitacao.dataInclusao)" />
+										<label
+											value="@load(solicitacao.diasSolicitados)" />
+									</row>
+								</template>
+							</grid>
+						</tabpanel>
+					</tabpanels>
+				</tabbox>
+			</vlayout>
+		</panelchildren>
+	</panel>
+</zk>

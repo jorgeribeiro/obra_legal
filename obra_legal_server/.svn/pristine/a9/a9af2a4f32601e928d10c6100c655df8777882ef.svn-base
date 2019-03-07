@@ -1,0 +1,17 @@
+package br.gov.ma.tce.obralegal.server.pendenciastatus;
+
+public enum PendenciaStatus {
+
+	PENDENTE("PENDENTE"), RESOLVIDO("RESOLVIDO"), AGUARDANDO_FISCALIZACAO("AGUARDANDO FISCALIZAÇÃO");
+
+	private String descricao;
+
+	private PendenciaStatus(String descricao) {
+		this.descricao = descricao;
+	}
+	
+	public String getDescricao() {
+		return descricao;
+	}
+
+}

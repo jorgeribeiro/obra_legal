@@ -1,0 +1,49 @@
+<?page title="Login - Obra Legal (Módulo Fiscalização) - TCE/MA" contentType="text/html;charset=UTF-8"?>
+<?link rel="shortcut icon" type="image/x-icon" href="/imagens/favicon.ico"?>
+
+<zk>
+	<include src="/layout/header.zul" />
+	<window
+		viewModel="@id('vm') @init('br.gov.ma.tce.obralegalfiscalizacao.pages.LoginVM')"
+		onOK="@command('login')">
+		<div align="center" style="margin-top:1%">
+			<image src="/imagens/tce.png" />
+			<panel width="600px" border="normal"
+				sclass="custom-panel">
+				<panelchildren>
+					<vbox align="center">
+						<vbox align="center" spacing="1px">
+							<label value="Obra Legal"
+								sclass="custom-label-login-1" />
+							<label
+								value="Acompanhamento de Obras Públicas"
+								sclass="custom-label-login-2" />
+							<label value="Módulo Fiscalização"
+								sclass="custom-label-login-2" />
+						</vbox>
+						<hbox align="center">
+							<vbox align="center">
+								<textbox value="@bind(vm.matricula)"
+									placeholder="Matrícula de servidor" focus="true"
+									maxlength="11" />
+								<textbox value="@bind(vm.senha)"
+									placeholder="Senha" type="password" />
+								<button label="Entrar"
+									onClick="@command('login')" />
+							</vbox>
+
+						</hbox>
+
+					</vbox>
+				</panelchildren>
+			</panel>
+		</div>
+
+		<div align="center" sclass="custom-footer">
+			<label style="font-size: 14px">
+				2019 © Copyright Superintendência de Tecnologia -
+				Tribunal de Contas do Estado do Maranhão
+			</label>
+		</div>
+	</window>
+</zk>

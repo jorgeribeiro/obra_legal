@@ -1,0 +1,55 @@
+package br.gov.ma.tce.obralegal.server.beans.usuariofiscalizacao;
+
+import java.util.ArrayList;
+import java.util.Collection;
+
+import javax.ejb.Stateless;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+
+@Stateless
+public class UsuarioFiscalizacaoFacadeBean {
+	public static final String URI = "java:global/obra_legal_ear/obra_legal_server/UsuarioFiscalizacaoFacadeBean!br.gov.ma.tce.obralegal.server.beans.usuariofiscalizacao.UsuarioFiscalizacaoFacadeBean";
+
+	@PersistenceContext(unitName = "obra_legal")
+	public EntityManager manager;
+
+	public UsuarioFiscalizacao include(UsuarioFiscalizacao usuarioFiscalizacao) {
+		manager.persist(usuarioFiscalizacao);
+		return usuarioFiscalizacao;
+	}
+
+	public UsuarioFiscalizacao update(UsuarioFiscalizacao usuarioFiscalizacao) {
+		manager.merge(usuarioFiscalizacao);
+		return usuarioFiscalizacao;
+	}
+
+	public void delete(int usuarioFiscalizacaoId) {
+		UsuarioFiscalizacao usuarioFiscalizacao = findByPrimaryKey(usuarioFiscalizacaoId);
+		manager.remove(usuarioFiscalizacao);
+	}
+
+	public UsuarioFiscalizacao findByPrimaryKey(Integer usuarioFiscalizacaoId) {
+		UsuarioFiscalizacao usuarioFiscalizacao = manager.find(UsuarioFiscalizacao.class, usuarioFiscalizacaoId);
+		return usuarioFiscalizacao;
+	}
+
+	public Collection<UsuarioFiscalizacao> findAll() {
+		Query q = manager.createQuery(
+				"select s from " + UsuarioFiscalizacao.NAME + " s  order by s.usuarioFiscalizacaoId");
+		Collection<UsuarioFiscalizacao> usuariosFiscalizacao = new ArrayList<UsuarioFiscalizacao>();
+		for (Object o : q.getResultList()) {
+			usuariosFiscalizacao.add((UsuarioFiscalizacao) o);
+		}
+		return usuariosFiscalizacao;
+	}
+
+	public UsuarioFiscalizacao findByMatricula(Integer servidorMatricula) {
+		Query q = manager
+				.createQuery("select s from " + UsuarioFiscalizacao.NAME
+						+ " s  where s.servidorMatricula=:arg0 order by s.usuarioFiscalizacaoId")
+				.setParameter("arg0", servidorMatricula);
+		return q.getResultList().isEmpty() ? null : (UsuarioFiscalizacao) q.getResultList().get(0);
+	}
+}

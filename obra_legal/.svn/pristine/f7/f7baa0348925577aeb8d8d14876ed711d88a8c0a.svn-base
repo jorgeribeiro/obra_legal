@@ -1,0 +1,56 @@
+<?page title="Login - Obra Legal (Módulo Jurisdicionado) - TCE/MA" contentType="text/html;charset=UTF-8"?>
+<?link rel="shortcut icon" type="image/x-icon" href="/imagens/favicon.ico"?>
+
+<zk>
+	<include src="/layout/header.zul" />
+	<window
+		viewModel="@id('vm') @init('br.gov.ma.tce.obralegal.pages.LoginVM')"
+		onOK="@command('login')">
+		<div align="center" style="margin-top:1%">
+			<image src="/imagens/tce.png" />
+			<panel width="600px" border="normal"
+				sclass="custom-panel">
+				<panelchildren>
+					<vbox align="center">
+						<vbox align="center" spacing="1px">
+							<label value="Obra Legal"
+								sclass="custom-label-login-1" />
+							<label
+								value="Acompanhamento de Obras Públicas" sclass="custom-label-login-2" />
+							<label value="Módulo Jurisdicionado" sclass="custom-label-login-3" />
+						</vbox>
+						<hbox align="center">
+							<vbox align="center">
+								<label style="font-weight:bold;"
+									value="ORIENTAÇÕES DE LOGIN">
+								</label>
+								<label
+									value="Login: Apenas números do seu CPF." />
+								<label
+									value="Senha: Senha de cadastro de Jurisdicionado ou Operador." />
+							</vbox>
+							<space width="30px" />
+							<vbox align="center">
+								<textbox value="@bind(vm.login)"
+									focus="true" maxlength="11" placeholder="Login (CPF)" />
+								<textbox value="@bind(vm.senha)"
+									type="password" placeholder="Senha" />
+								<button label="Entrar"
+									onClick="@command('login')" />
+							</vbox>
+
+						</hbox>
+
+					</vbox>
+				</panelchildren>
+			</panel>
+		</div>
+
+		<div align="center" sclass="custom-footer">
+			<label style="font-size: 14px">
+				2019 © Copyright Superintendência de Tecnologia -
+				Tribunal de Contas do Estado do Maranhão
+			</label>
+		</div>
+	</window>
+</zk>

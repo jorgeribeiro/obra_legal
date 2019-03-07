@@ -1,0 +1,170 @@
+<?page title="Obra Legal - TCE/MA - Solicitações"?>
+<?link rel="shortcut icon" type="image/x-icon" href="/imagens/favicon.ico"?>
+<?init class="org.zkoss.zk.ui.util.Composition" arg0="/template.zul" ?>
+
+<zk>
+	<panel
+		viewModel="@id('vm') @init('br.gov.ma.tce.obralegal.pages.SolicitacoesVM')"
+		self="@define(conteudo)" title="Solicitações" border="normal">
+		<panelchildren>
+			<vlayout>
+				<button label="Nova solicitação"
+					onClick="@command('abrirModalNovaSolicitacao', visible=true)"
+					iconSclass="fas fa-plus-circle" />
+				<grid model="@load(vm.solicitacoes)" mold="paging"
+					pageSize="10" emptyMessage="Nenhuma solicitação encontrada.">
+					<columns>
+						<column label="Código da obra" align="center" />
+						<column label="Bem público" align="center" />
+						<column label="Data da solicitação"
+							align="center" />
+						<column label="Dias solicitados" align="center" />
+						<column label="Dias autorizados" align="center"
+							width="200px" />
+						<column label="Status" align="center"
+							width="300px" />
+						<column label="Ações" align="center"
+							width="150px" />
+					</columns>
+					<template name="model" var="solicitacao">
+						<row>
+							<label
+								value="@load(solicitacao.obraServico.obraServicoId)" />
+							<label
+								value="@load(solicitacao.obraServico.bemPublicoStr)" />
+							<label
+								value="@load(solicitacao.dataInclusao)" />
+							<label
+								value="@load(solicitacao.diasSolicitados)" />
+							<label
+								value="@load(solicitacao.diasAutorizadosStr)" />
+							<label value="@load(solicitacao.statusStr)" />
+							<div>
+								<button
+									onClick="@command('abrirModalVisualizarSolicitacao', visible=true, solicitacao=solicitacao)"
+									tooltiptext="Visualizar detalhes" iconSclass="fas fa-eye" />
+								<button
+									onClick="@command('abrirModalExcluirSolicitacao', visible=true, solicitacao=solicitacao)"
+									tooltiptext="Excluir solicitação"
+									iconSclass="fas fa-times-circle" />
+							</div>
+						</row>
+					</template>
+				</grid>
+
+				<window id="modalNovaSolicitacao" mode="modal"
+					visible="false" sclass="custom-window">
+					<vbox align="left">
+						<label value="Nova solicitação"
+							sclass="custom-title" />
+						<combobox id="comboObras"
+							placeholder="Obra/serviço"
+							onSelect="@command('verificarObraServico')"
+							selectedItem="@bind(vm.novaSolicitacao.obraServico)"
+							model="@load(vm.obras)">
+							<template name="model" var="obra">
+								<comboitem
+									label="@load(obra.obraServicoStr)" value="@load(obra)" />
+							</template>
+						</combobox>
+						<vlayout spacing="1px">
+							<label value="Dias solicitados:"
+								style="font-weight:bold" />
+							<intbox
+								value="@bind(vm.novaSolicitacao.diasSolicitados)" />
+						</vlayout>
+						<vlayout spacing="1px">
+							<label
+								value="Observações para a solicitação:"
+								style="font-weight:bold" />
+							<textbox rows="3"
+								placeholder="Descreva o motivo desta solicitação."
+								value="@bind(vm.novaSolicitacao.observacaoPedido)" />
+						</vlayout>
+
+						<separator />
+						<div align="center">
+							<button tooltiptext="Fechar"
+								style="font-weight:bold" label="FECHAR"
+								iconSclass="fas fa-times-circle"
+								onClick="@command('abrirModalNovaSolicitacao', visible=false)" />
+							<button tooltiptext="Enviar solicitação"
+								style="font-weight:bold" label="ENVIAR SOLICITAÇÃO"
+								iconSclass="fas fa-plus-circle"
+								onClick="@command('enviarSolicitacao')" />
+						</div>
+					</vbox>
+				</window>
+
+				<window id="modalVisualizarSolicitacao" mode="modal"
+					visible="false" sclass="custom-window" width="300px">
+					<vbox align="left">
+						<label value="Visualizar solicitação"
+							sclass="custom-title" />
+						<vlayout spacing="7px">
+							<vlayout spacing="1px">
+								<label value="Status da solicitação:"
+									style="font-weight:bold" />
+								<label
+									value="@load(vm.solicitacaoSelecionada.statusStr)" />
+							</vlayout>
+							<vlayout spacing="1px">
+								<label value="Dias solicitados:"
+									style="font-weight:bold" />
+								<label
+									value="@load(vm.solicitacaoSelecionada.diasSolicitados)" />
+							</vlayout>
+							<vlayout spacing="1px">
+								<label value="Observações do pedido:"
+									style="font-weight:bold" />
+								<label
+									value="@load(vm.solicitacaoSelecionada.observacaoPedido)" />
+							</vlayout>
+							<vlayout spacing="1px">
+								<label value="Dias autorizados:"
+									style="font-weight:bold" />
+								<label
+									value="@load(vm.solicitacaoSelecionada.diasAutorizadosStr)" />
+							</vlayout>
+							<vlayout spacing="1px">
+								<label
+									value="Observações do atendimento:" style="font-weight:bold" />
+								<label
+									value="@load(vm.solicitacaoSelecionada.observacaoAtendimentoStr)" />
+							</vlayout>
+							<vlayout spacing="1px">
+								<label value="Data do atendimento:"
+									style="font-weight:bold" />
+								<label
+									value="@load(vm.solicitacaoSelecionada.dataAtendimentoStr)" />
+							</vlayout>
+						</vlayout>
+
+						<separator />
+						<div align="center">
+							<button tooltiptext="Fechar"
+								style="font-weight:bold" label="FECHAR"
+								iconSclass="fas fa-times-circle"
+								onClick="@command('abrirModalVisualizarSolicitacao', visible=false, solicitacao=null)" />
+						</div>
+					</vbox>
+				</window>
+
+				<window id="modalExcluirSolicitacao" mode="modal"
+					visible="false">
+					<vbox align="center" style="padding:15px">
+						<label multiline="true"
+							value="Confirma a exclusão desta solicitação?" />
+						<separator />
+						<hlayout>
+							<button label="Não"
+								onClick="@command('abrirModalExcluirSolicitacao', visible=false, solicitacao=null)" />
+							<button label="Sim"
+								onClick="@command('excluirSolicitacao')" />
+						</hlayout>
+					</vbox>
+				</window>
+			</vlayout>
+		</panelchildren>
+	</panel>
+</zk>

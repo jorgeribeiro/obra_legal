@@ -1,0 +1,136 @@
+<?page title="Obra Legal - TCE/MA -  Relatórios periódicos - Obras"?>
+<?link rel="shortcut icon" type="image/x-icon" href="/imagens/favicon.ico"?>
+<?init class="org.zkoss.zk.ui.util.Composition" arg0="/template.zul" ?>
+
+<zk>
+	<panel
+		viewModel="@id('vm') @init('br.gov.ma.tce.obralegal.pages.RelatoriosPeriodicosObrasVM')"
+		self="@define(conteudo)" title="Relatórios periódicos - Obras"
+		onCreate="@command('carregarObrasServicosPorMandato')">
+		<panelchildren>
+			<vlayout>
+				<grid model="@load(vm.obras)" mold="paging"
+					pageSize="10"
+					emptyMessage="Nenhuma obra encontrada para o mandato selecionado.">
+					<columns>
+						<column label="Cód." align="center"
+							width="60px" />
+						<column label="Bem público" align="center" />
+						<column label="Tipo execução" align="center"
+							width="200px" />
+						<column label="Contrato Nº/Ano-Obra"
+							align="center" width="200px" />
+						<column label="Situação da obra" align="center"
+							width="150px" />
+						<column label="Ações" align="center"
+							width="125px" />
+					</columns>
+					<template name="model" var="obra">
+						<row>
+							<label value="@load(obra.obraServicoId)" />
+							<label value="@load(obra.bemPublico)" />
+							<label
+								value="@load(obra.tipoExecucao.descricao)" />
+							<label
+								value="@load(obra.contrato.numeroAnoContratoStr)" />
+							<label
+								value="@load(obra.situacaoAtual.tipoSituacao.descricao)" />
+							<div>
+								<button
+									onClick="@command('abrirModalListarRelatorios', obra=obra, visible=true)"
+									tooltiptext="Listar relatórios"
+									iconSclass="fas fa-clipboard-list" />
+								<button
+									onClick="@command('abrirModalInserirRelatorio', obra=obra, visible=true)"
+									tooltiptext="Inserir relatório"
+									iconSclass="fas fa-plus-circle" />
+							</div>
+						</row>
+					</template>
+				</grid>
+			</vlayout>
+
+			<window id="modalListarRelatórios" mode="modal"
+				visible="false" sclass="custom-window">
+				<vbox align="left">
+					<label value="Listar relatórios"
+						sclass="custom-title" />
+					<grid model="@load(vm.relatorios)" mold="paging"
+						width="700px" pageSize="5"
+						emptyMessage="Nenhum relatório encontrado para esta obra.">
+						<columns>
+							<column label="Data relatório"
+								align="center" />
+							<column label="Data inclusão"
+								align="center" />
+							<column label="Anotações" align="center"
+								width="300px" />
+							<column label="Visualizar" align="center" />
+						</columns>
+						<template name="model" var="relatorio">
+							<row>
+								<label value="@load(relatorio.dataStr)" />
+								<label
+									value="@load(relatorio.dataInclusaoStr)" />
+								<label
+									value="@load(relatorio.anotacoesStr)" />
+								<button sclass="button is-info"
+									iconSclass="fas fa-eye" onClick="@command('')" />
+							</row>
+						</template>
+					</grid>
+
+					<separator />
+					<div align="center">
+						<button tooltiptext="Fechar"
+							style="font-weight:bold" label="FECHAR"
+							iconSclass="fas fa-times-circle"
+							onClick="@command('abrirModalListarRelatorios', obra=null, visible=false)" />
+					</div>
+				</vbox>
+			</window>
+
+			<window id="modalInserirRelatorio" mode="modal"
+				visible="false" sclass="custom-window">
+				<vbox align="left">
+					<label value="Inserir relatório"
+						sclass="custom-title" />
+					<vlayout spacing="7px">
+						<vlayout spacing="1px">
+							<label value="Data do relatório:"
+								style="font-weight:bold" />
+							<datebox format="dd/MM/yyyy"
+								placeholder="dd/mm/aaaa" maxlength="10"
+								value="@bind(vm.relatorio.data)" />
+						</vlayout>
+						<vlayout spacing="1px">
+							<label value="Anotações:"
+								style="font-weight:bold" />
+							<textbox sclass="input" rows="4"
+								value="@bind(vm.relatorio.anotacoes)" />
+						</vlayout>
+						<vlayout spacing="1px">
+							<label value="Upload do relatório:"
+								style="font-weight:bold" />
+							<button label="Upload"
+								iconSclass="fas fa-file-upload" upload="true, maxsize=10000"
+								onUpload="@command('uploadRelatorio', upEvent=event)" />
+						</vlayout>
+					</vlayout>
+
+					<separator />
+					<div align="center">
+						<button tooltiptext="Fechar"
+							style="font-weight:bold" label="FECHAR"
+							iconSclass="fas fa-times-circle"
+							onClick="@command('abrirModalInserirRelatorio', obra=null, visible=false)" />
+						<button tooltiptext="Inserir relatório"
+							style="font-weight:bold" label="INSERIR RELATÓRIO"
+							iconSclass="fas fa-plus-circle"
+							onClick="@command('inserirRelatorio')" />
+					</div>
+				</vbox>
+			</window>
+		</panelchildren>
+	</panel>
+</zk>

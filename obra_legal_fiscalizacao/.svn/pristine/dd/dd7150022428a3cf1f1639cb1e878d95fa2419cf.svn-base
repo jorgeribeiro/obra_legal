@@ -1,0 +1,144 @@
+package br.gov.ma.tce.obralegalfiscalizacao.pages;
+
+import java.util.Collection;
+import java.util.Date;
+
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+
+import org.zkoss.bind.annotation.AfterCompose;
+import org.zkoss.bind.annotation.BindingParam;
+import org.zkoss.bind.annotation.Command;
+import org.zkoss.bind.annotation.ContextParam;
+import org.zkoss.bind.annotation.ContextType;
+import org.zkoss.bind.annotation.Init;
+import org.zkoss.bind.annotation.NotifyChange;
+import org.zkoss.bind.annotation.Scope;
+import org.zkoss.bind.annotation.ScopeParam;
+import org.zkoss.zk.ui.Component;
+import org.zkoss.zk.ui.select.Selectors;
+import org.zkoss.zk.ui.select.annotation.Wire;
+import org.zkoss.zk.ui.util.Clients;
+import org.zkoss.zul.Window;
+
+import br.gov.ma.tce.obralegal.server.beans.solicitacao.Solicitacao;
+import br.gov.ma.tce.obralegal.server.beans.solicitacao.SolicitacaoFacadeBean;
+import br.gov.ma.tce.obralegal.server.exception.BusinessException;
+import br.gov.ma.tce.seguranca.interno.server.beans.usuario.Usuario;
+
+public class SolicitacoesVM {
+	private Usuario usuario;
+	private Solicitacao solicitacaoSelecionada;
+
+	private Collection<Solicitacao> solicitacoes;
+
+	private SolicitacaoFacadeBean solicitacaoFacade;
+
+	@Wire("#modalRevisarSolicitacao")
+	private Window modalRevisarSolicitacao;
+
+	@Wire("#modalVisualizarSolicitacao")
+	private Window modalVisualizarSolicitacao;
+
+	public SolicitacoesVM() {
+		try {
+			InitialContext ctx = new InitialContext();
+			solicitacaoFacade = (SolicitacaoFacadeBean) ctx.lookup(SolicitacaoFacadeBean.URI);
+		} catch (NamingException e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Init
+	public void init(
+			@ScopeParam(scopes = Scope.SESSION, value = "usuario") Usuario usuario) {
+		this.usuario = usuario;
+	}
+
+	@AfterCompose
+	public void afterCompose(@ContextParam(ContextType.VIEW) Component view) {
+		Selectors.wireComponents(view, this, false);
+	}
+
+	@Command
+	@NotifyChange(".")
+	public void carregarSolicitacoesPorStatus(@BindingParam("status") String status) {
+		try {
+			if (status.equals("Pendentes")) {
+				solicitacoes = solicitacaoFacade.findSolicitacoesNaoAtendidas();
+			} else if (status.equals("Revisadas")) {
+				solicitacoes = solicitacaoFacade.findSolicitacoesRevisadas();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Command
+	@NotifyChange(".")
+	public void abrirModalRevisarSolicitacao(@BindingParam("visible") Boolean visible,
+			@BindingParam("solicitacao") Solicitacao solicitacao) {
+		try {
+			if (visible) {
+				solicitacaoSelecionada = solicitacao;
+				solicitacaoSelecionada.setStatus(false);
+			}
+			modalRevisarSolicitacao.setVisible(visible);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Command
+	@NotifyChange(".")
+	public void enviarRevisao() {
+		try {
+			if (solicitacaoSelecionada.getStatus() && solicitacaoSelecionada.getDiasAutorizados() == null) {
+				throw new BusinessException("Informe a quantidade de dias autorizados desta solicitação.");
+			}
+
+			// Evita que solicitações desaprovadas contenham valor de dias autorizados
+			if (!solicitacaoSelecionada.getStatus()) {
+				solicitacaoSelecionada.setDiasAutorizados(null);
+			}
+			solicitacaoSelecionada.setUsuario(usuario);
+			solicitacaoSelecionada.setDataAtendimento(new Date());
+			solicitacaoFacade.update(solicitacaoSelecionada);
+			solicitacoes.remove(solicitacaoSelecionada);
+			modalRevisarSolicitacao.setVisible(false);
+			Clients.showNotification("Revisão enviada com sucesso!", Clients.NOTIFICATION_TYPE_INFO, null, null, 3000,
+					true);
+		} catch (BusinessException e) {
+			Clients.showNotification(e.getMessage(), Clients.NOTIFICATION_TYPE_WARNING, null, null, 3000, true);
+		}
+	}
+
+	@Command
+	@NotifyChange(".")
+	public void abrirModalVisualizarSolicitacao(@BindingParam("visible") Boolean visible,
+			@BindingParam("solicitacao") Solicitacao solicitacao) {
+		try {
+			solicitacaoSelecionada = solicitacao;
+			modalVisualizarSolicitacao.setVisible(visible);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	public Solicitacao getSolicitacaoSelecionada() {
+		return solicitacaoSelecionada;
+	}
+
+	public void setSolicitacaoSelecionada(Solicitacao solicitacaoSelecionada) {
+		this.solicitacaoSelecionada = solicitacaoSelecionada;
+	}
+
+	public Collection<Solicitacao> getSolicitacoes() {
+		return solicitacoes;
+	}
+
+	public void setSolicitacoes(Collection<Solicitacao> solicitacoes) {
+		this.solicitacoes = solicitacoes;
+	}
+
+}

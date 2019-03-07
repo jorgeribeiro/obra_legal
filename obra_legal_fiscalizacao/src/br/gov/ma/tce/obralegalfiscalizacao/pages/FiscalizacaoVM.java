@@ -1,0 +1,291 @@
+package br.gov.ma.tce.obralegalfiscalizacao.pages;
+
+import java.util.Collection;
+import java.util.Date;
+
+import javax.naming.InitialContext;
+import javax.naming.NamingException;
+
+import org.zkoss.bind.annotation.AfterCompose;
+import org.zkoss.bind.annotation.BindingParam;
+import org.zkoss.bind.annotation.Command;
+import org.zkoss.bind.annotation.ContextParam;
+import org.zkoss.bind.annotation.ContextType;
+import org.zkoss.bind.annotation.Init;
+import org.zkoss.bind.annotation.NotifyChange;
+import org.zkoss.bind.annotation.Scope;
+import org.zkoss.bind.annotation.ScopeParam;
+import org.zkoss.zk.ui.Component;
+import org.zkoss.zk.ui.Executions;
+import org.zkoss.zk.ui.select.Selectors;
+import org.zkoss.zk.ui.select.annotation.Wire;
+import org.zkoss.zk.ui.util.Clients;
+import org.zkoss.zul.Window;
+
+import br.gov.ma.tce.obralegal.server.beans.documento.Documento;
+import br.gov.ma.tce.obralegal.server.beans.documento.DocumentoFacadeBean;
+import br.gov.ma.tce.obralegal.server.beans.localizacao.Localizacao;
+import br.gov.ma.tce.obralegal.server.beans.localizacao.LocalizacaoFacadeBean;
+import br.gov.ma.tce.obralegal.server.beans.obraservico.ObraServico;
+import br.gov.ma.tce.obralegal.server.beans.obraservico.ObraServicoFacadeBean;
+import br.gov.ma.tce.obralegal.server.beans.pendencia.Pendencia;
+import br.gov.ma.tce.obralegal.server.beans.pendencia.PendenciaFacadeBean;
+import br.gov.ma.tce.obralegal.server.beans.profissionalobra.ProfissionalObra;
+import br.gov.ma.tce.obralegal.server.beans.profissionalobra.ProfissionalObraFacadeBean;
+import br.gov.ma.tce.obralegal.server.beans.situacao.Situacao;
+import br.gov.ma.tce.obralegal.server.beans.situacao.SituacaoFacadeBean;
+import br.gov.ma.tce.obralegal.server.exception.BusinessException;
+import br.gov.ma.tce.obralegal.server.objetopendencia.ObjetoPendencia;
+import br.gov.ma.tce.obralegal.server.statuspendencia.StatusPendencia;
+import br.gov.ma.tce.seguranca.interno.server.beans.usuario.Usuario;
+
+public class FiscalizacaoVM {
+	private Usuario usuario;
+	private ObraServico obraServico;
+	private Pendencia pendenciaControles, pendenciaLocalizacao, pendenciaProfissionais, pendenciaSituacao;
+
+	private Collection<Localizacao> localizacoes;
+	private Collection<ProfissionalObra> profissionaisObra;
+	private Collection<Situacao> situacoes;
+	private Collection<Documento> documentos;
+
+	private ObraServicoFacadeBean obraServicoFacade;
+	private LocalizacaoFacadeBean localizacaoFacade;
+	private ProfissionalObraFacadeBean profissionalObraFacade;
+	private SituacaoFacadeBean situacaoFacade;
+	private DocumentoFacadeBean documentoFacade;
+	private PendenciaFacadeBean pendenciaFacade;
+
+	@Wire("#modalPendenciasControles")
+	private Window modalPendenciasControles;
+
+	@Wire("#modalPendenciasLocalizacao")
+	private Window modalPendenciasLocalizacao;
+
+	@Wire("#modalPendenciasProfissionais")
+	private Window modalPendenciasProfissionais;
+
+	@Wire("#modalPendenciasSituação")
+	private Window modalPendenciasSituação;
+
+	public FiscalizacaoVM() {
+		try {
+			InitialContext ctx = new InitialContext();
+			obraServicoFacade = (ObraServicoFacadeBean) ctx.lookup(ObraServicoFacadeBean.URI);
+			localizacaoFacade = (LocalizacaoFacadeBean) ctx.lookup(LocalizacaoFacadeBean.URI);
+			profissionalObraFacade = (ProfissionalObraFacadeBean) ctx.lookup(ProfissionalObraFacadeBean.URI);
+			situacaoFacade = (SituacaoFacadeBean) ctx.lookup(SituacaoFacadeBean.URI);
+			documentoFacade = (DocumentoFacadeBean) ctx.lookup(DocumentoFacadeBean.URI);
+			pendenciaFacade = (PendenciaFacadeBean) ctx.lookup(PendenciaFacadeBean.URI);
+		} catch (NamingException e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Init
+	public void init(
+			@ScopeParam(scopes = Scope.SESSION, value = "usuario") Usuario usuario) {
+		this.usuario = usuario;
+		try {
+			String id = Executions.getCurrent().getParameter("id");
+			if (id != null) {
+				obraServico = obraServicoFacade.findByPrimaryKey(Integer.parseInt(id));
+				localizacoes = localizacaoFacade.findLocalizacoesByObraServico(obraServico);
+				profissionaisObra = profissionalObraFacade.findProfissionaisByObraServico(obraServico);
+				situacoes = situacaoFacade.findSituacoesByObraServico(obraServico);
+				documentos = documentoFacade.findDocumentosByObraServico(obraServico);
+			} else {
+				Executions.getCurrent().sendRedirect("/");
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	@AfterCompose
+	public void afterCompose(@ContextParam(ContextType.VIEW) Component view) {
+		Selectors.wireComponents(view, this, false);
+	}
+
+	@Command
+	@NotifyChange(".")
+	public void abrirModalPendenciasControles(@BindingParam("visible") Boolean visible) {
+		try {
+			if (visible) {
+				if (pendenciaControles == null) {
+					pendenciaControles = new Pendencia();
+				}
+				pendenciaControles.setObraServico(obraServico);
+				pendenciaControles.setUsuario(usuario);
+				pendenciaControles.setObjeto(ObjetoPendencia.CONTROLES);
+				pendenciaControles.setStatusPendencia(StatusPendencia.PENDENTE);
+			}
+			modalPendenciasControles.setVisible(visible);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Command
+	@NotifyChange(".")
+	public void abrirModalPendenciasLocalizacao(@BindingParam("visible") Boolean visible) {
+		try {
+			if (visible) {
+				if (pendenciaLocalizacao == null) {
+					pendenciaLocalizacao = new Pendencia();
+				}
+				pendenciaLocalizacao.setObraServico(obraServico);
+				pendenciaLocalizacao.setUsuario(usuario);
+				pendenciaLocalizacao.setObjeto(ObjetoPendencia.LOCALIZACAO);
+				pendenciaLocalizacao.setStatusPendencia(StatusPendencia.PENDENTE);
+			}
+			modalPendenciasLocalizacao.setVisible(visible);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Command
+	@NotifyChange(".")
+	public void abrirModalPendenciasProfissionais(@BindingParam("visible") Boolean visible) {
+		try {
+			if (visible) {
+				if (pendenciaProfissionais == null) {
+					pendenciaProfissionais = new Pendencia();
+				}
+				pendenciaProfissionais.setObraServico(obraServico);
+				pendenciaProfissionais.setUsuario(usuario);
+				pendenciaProfissionais.setObjeto(ObjetoPendencia.PROFISSIONAIS);
+				pendenciaProfissionais.setStatusPendencia(StatusPendencia.PENDENTE);
+			}
+			modalPendenciasProfissionais.setVisible(visible);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Command
+	@NotifyChange(".")
+	public void abrirModalPendenciasSituacao(@BindingParam("visible") Boolean visible) {
+		try {
+			if (visible) {
+				if (pendenciaSituacao == null) {
+					pendenciaSituacao = new Pendencia();
+				}
+				pendenciaSituacao.setObraServico(obraServico);
+				pendenciaSituacao.setUsuario(usuario);
+				pendenciaSituacao.setObjeto(ObjetoPendencia.SITUACAO);
+				pendenciaSituacao.setStatusPendencia(StatusPendencia.PENDENTE);
+			}
+			modalPendenciasSituação.setVisible(visible);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Command
+	@NotifyChange(".")
+	public void informarPendencias(@BindingParam("pendencia") Pendencia pendencia) {
+		try {
+			if (pendencia.getDescricao() == null || pendencia.getDescricao().trim().equals("")) {
+				throw new BusinessException("Informe uma descrição para a pendência.");
+			}
+
+			pendencia.setDataInclusao(new Date());
+			if (pendencia.getObjeto().equals("CONTROLES")) {
+				pendenciaFacade.include(pendenciaControles);
+				modalPendenciasControles.setVisible(false);
+			} else if (pendencia.getObjeto().equals("LOCALIZAÇÃO")) {
+				pendenciaFacade.include(pendenciaLocalizacao);
+				modalPendenciasLocalizacao.setVisible(false);
+			} else if (pendencia.getObjeto().equals("PROFISSIONAIS")) {
+				pendenciaFacade.include(pendenciaProfissionais);
+				modalPendenciasLocalizacao.setVisible(false);
+			} else if (pendencia.getObjeto().equals("SITUAÇÃO")) {
+				pendenciaFacade.include(pendenciaSituacao);
+				modalPendenciasSituação.setVisible(false);
+			}
+			pendencia = new Pendencia();
+			Clients.showNotification("Pendência enviada à unidade responsável com sucesso!",
+					Clients.NOTIFICATION_TYPE_INFO, null, null, 3000, true);
+		} catch (BusinessException e) {
+			Clients.showNotification(e.getMessage(), Clients.NOTIFICATION_TYPE_WARNING, null, null, 3000, true);
+		} catch (Exception e) {
+			Clients.showNotification("Ocorreu um erro inesperado ao informar pendências. Tente novamente mais tarde.",
+					Clients.NOTIFICATION_TYPE_WARNING, null, null, 3000, true);
+		}
+	}
+
+	public ObraServico getObraServico() {
+		return obraServico;
+	}
+
+	public void setObraServico(ObraServico obraServico) {
+		this.obraServico = obraServico;
+	}
+
+	public Pendencia getPendenciaControles() {
+		return pendenciaControles;
+	}
+
+	public void setPendenciaControles(Pendencia pendenciasControles) {
+		this.pendenciaControles = pendenciasControles;
+	}
+
+	public Pendencia getPendenciaLocalizacao() {
+		return pendenciaLocalizacao;
+	}
+
+	public void setPendenciaLocalizacao(Pendencia pendenciaLocalizacao) {
+		this.pendenciaLocalizacao = pendenciaLocalizacao;
+	}
+
+	public Pendencia getPendenciaProfissionais() {
+		return pendenciaProfissionais;
+	}
+
+	public void setPendenciaProfissionais(Pendencia pendenciaProfissionais) {
+		this.pendenciaProfissionais = pendenciaProfissionais;
+	}
+
+	public Pendencia getPendenciaSituacao() {
+		return pendenciaSituacao;
+	}
+
+	public void setPendenciaSituacao(Pendencia pendenciaSituacao) {
+		this.pendenciaSituacao = pendenciaSituacao;
+	}
+
+	public Collection<Localizacao> getLocalizacoes() {
+		return localizacoes;
+	}
+
+	public void setLocalizacoes(Collection<Localizacao> localizacoes) {
+		this.localizacoes = localizacoes;
+	}
+
+	public Collection<ProfissionalObra> getProfissionaisObra() {
+		return profissionaisObra;
+	}
+
+	public void setProfissionaisObra(Collection<ProfissionalObra> profissionaisObra) {
+		this.profissionaisObra = profissionaisObra;
+	}
+
+	public Collection<Situacao> getSituacoes() {
+		return situacoes;
+	}
+
+	public void setSituacoes(Collection<Situacao> situacoes) {
+		this.situacoes = situacoes;
+	}
+
+	public Collection<Documento> getDocumentos() {
+		return documentos;
+	}
+
+	public void setDocumentos(Collection<Documento> documentos) {
+		this.documentos = documentos;
+	}
+
+}
